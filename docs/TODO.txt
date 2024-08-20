@@ -1,0 +1,12 @@
+Rendering sprites
+-----------------
+Consider what to do with quad data structures
+	One structure with a union (with an Enum or parameter)
+	Keep them separate
+	
+	What to name them?
+
+How to load textures/sprites?
+
+Move ORIGIN into maths
+Move coordinate transforms for rotated quads into maths

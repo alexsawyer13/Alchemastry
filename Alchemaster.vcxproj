@@ -130,13 +130,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\game.c" />
     <ClCompile Include="src\gfx.c" />
     <ClCompile Include="src\main.c" />
     <ClCompile Include="src\maths.c" />
     <ClCompile Include="src\platform.c" />
+    <ClCompile Include="src\registry.c" />
     <ClCompile Include="vendor\glad.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\game.h" />
     <ClInclude Include="src\gfx.h" />
     <ClInclude Include="src\maths.h" />
     <ClInclude Include="src\platform.h" />

@@ -1,6 +1,7 @@
 #include "platform.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 
 Platform platform;
 
@@ -11,8 +12,10 @@ int platform_init()
 		fprintf(stderr, "Failed to initialise GLFW\n");
 		return 0;
 	}
-
+	
 	platform.window = glfwCreateWindow(1280, 720, "Hello world", NULL, NULL);
+	glfwSetWindowAspectRatio(platform.window, 16, 9);
+	platform.viewport = platform_get_viewport_size();
 
 	if (!platform.window)
 	{
@@ -38,11 +41,90 @@ int platform_window_closed()
 
 void platform_update()
 {
+	ivec2 new_viewport;
+
 	glfwSwapBuffers(platform.window);
 	glfwPollEvents();
+
+	new_viewport = platform_get_viewport_size();
+
+	platform.viewport_changed = !ivec2_eq(platform.viewport, new_viewport);
+	platform.viewport = new_viewport;
 }
 
 GLADloadproc platform_get_gladloadproc()
 {
 	return glfwGetProcAddress;
+}
+
+int platform_read_file_alloc(const char *path, char **out_buffer, size_t *out_length)
+{
+	errno_t error;
+	FILE *file;
+	size_t length, output;
+	char *buffer;
+
+	error = fopen_s(&file, path, "r");
+	if (error != 0)
+	{
+		fprintf(stderr, "Failed to open file %s with error code %d\n", path, error);
+		return 0;
+	}
+
+	fseek(file, 0, SEEK_END);
+	length = (size_t)ftell(file);
+	fseek(file, 0, SEEK_SET);
+
+	if (length == 0)
+	{
+		fprintf(stderr, "Trying to read file %s but it's empty\n", path);
+		fclose(file);
+		return 0;
+	}
+
+	buffer = malloc(length + 1);
+	if (!buffer)
+	{
+		fprintf(stderr, "Failed to allocate buffer for file %s\n", path);
+		fclose(file);
+		return 0;
+	}
+
+	output = fread(buffer, 1, length, file);
+	if (output == 0)
+	{
+		if (ferror(file))
+		{
+			fprintf(stderr, "Failed to read file %s\n", path);
+			fclose(file);
+			return 0;
+		}
+	}
+	if (output > length)
+	{
+		fprintf(stderr, "Read more characters from file %s than allocated\n", path);
+		fclose(file);
+		return 0;
+	}
+
+	fclose(file);
+
+	buffer[output] = '\0';
+
+	*out_buffer = buffer;
+	*out_length = output;
+
+	return 1;
+}
+
+ivec2 platform_get_viewport_size()
+{
+	ivec2 viewport;
+	glfwGetWindowSize(platform.window, &viewport.x, &viewport.y);
+	return viewport;
+}
+
+int platform_viewport_changed()
+{
+	return platform.viewport_changed;
 }

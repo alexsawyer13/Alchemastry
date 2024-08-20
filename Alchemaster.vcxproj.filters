@@ -30,6 +30,12 @@
     <ClCompile Include="src\maths.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\game.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\registry.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\platform.h">
@@ -39,6 +45,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\maths.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\game.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
