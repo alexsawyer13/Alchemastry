@@ -3,8 +3,8 @@
 
 #include "maths.h"
 
-#define GFX_MAX_QUADS 1024
-#define GFX_MAX_SPRITES 1024
+#define GFX_MAX_COLOUR_QUADS 1024
+#define GFX_MAX_SPRITE_QUADS 1024
 
 typedef struct
 {
@@ -16,6 +16,12 @@ typedef enum
 	GFX_ORIGIN_CENTRE,
 	GFX_ORIGIN_BOTTOM_LEFT,
 } Gfx_Origin;
+
+typedef enum
+{
+	GFX_QUAD_COLOUR,
+	GFX_QUAD_SPRITE
+} Gfx_Quad_Type;
 
 typedef struct
 {
@@ -31,23 +37,19 @@ typedef struct
 
 typedef struct
 {
-	vec2		position;
-	vec2		size;
-	float		angle;
-	Gfx_Origin	origin;
+	vec2			position;
+	vec2			size;
+	float			angle;
+	Gfx_Origin		origin;
 
-	vec4		colour;
-} ColouredQuad;
-
-typedef struct
-{
-	vec2		position;
-	vec2		size;
-	float		angle;
-	Gfx_Origin	origin;
-
-	Sprite		sprite;
-} TexturedQuad;
+	Gfx_Quad_Type 	type;
+	union
+	{
+		vec4		colour;
+		Sprite		sprite;
+	};
+	
+} Quad;
 
 typedef struct
 {
@@ -67,18 +69,18 @@ typedef struct
 	ivec2			viewport;
 
 	Shader			colour_shader;
+	Shader			texture_shader;
 
-	ColouredQuad	quads[GFX_MAX_QUADS];
-	int				quad_count;
-	Mesh			quad_mesh;
-	float			*quad_buffer;
+	Quad			colour_quads[GFX_MAX_COLOUR_QUADS];
+	int				colour_quad_count;
+	Mesh			colour_quad_mesh;
+	float			*colour_quad_buffer;
 
-	Sprite			sprites[GFX_MAX_SPRITES];
-	int				sprite_count;
-	Mesh			sprite_mesh;
-	float			*sprite_buffer;
+	Quad			sprite_quads[GFX_MAX_SPRITE_QUADS];
+	int				sprite_quad_count;
+	Mesh			sprite_quad_mesh;
+	float			*sprite_quad_buffer;
 } Gfx;
-
 
 int		gfx_init();
 void	gfx_shutdown();
@@ -90,11 +92,11 @@ void	gfx_mesh_destroy(Mesh *mesh);
 void	gfx_start_frame(vec4 bg_colour);
 void	gfx_end_frame();
 
-void	gfx_draw_quad(ColouredQuad *quad);
-void	gfx_flush_quads();
+Quad	gfx_quad_colour_centred(vec2 position, vec2 size, vec4 colour, float angle);
 
-void	gfx_draw_sprite(Sprite *sprite);
-void	gfx_flush_sprites();
+void	gfx_draw_quad(Quad quad);
+void	gfx_flush_colour_quads();
+void	gfx_flush_sprite_quads();
 
 int		gfx_shader_create(Shader *shader, const char *vertex_path, const char *fragment_path);
 void	gfx_shader_destroy(Shader *shader);

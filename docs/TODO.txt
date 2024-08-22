@@ -11,3 +11,7 @@ How to load textures/sprites?
 Move ORIGIN into maths
 Move coordinate transforms for rotated quads into maths
 Fix rotations about bottom left
+
+Platform stuff
+--------------
+Changed from fopen_s back to fopen so may have warning on Windows

@@ -9,6 +9,8 @@ Platform platform;
 
 int platform_init()
 {
+	
+
 	if (glfwInit() == GLFW_FALSE)
 	{
 		fprintf(stderr, "Failed to initialise GLFW\n");
@@ -56,7 +58,7 @@ void platform_update()
 
 GLADloadproc platform_get_gladloadproc()
 {
-	return glfwGetProcAddress;
+	return (GLADloadproc) glfwGetProcAddress;
 }
 
 int platform_read_file_alloc(const char *path, char **out_buffer, size_t *out_length)
