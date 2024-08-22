@@ -2,6 +2,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <errno.h>
+#include <string.h>
 
 Platform platform;
 
@@ -13,7 +15,7 @@ int platform_init()
 		return 0;
 	}
 	
-	platform.window = glfwCreateWindow(1280, 720, "Hello world", NULL, NULL);
+	platform.window = glfwCreateWindow(1600, 900, "Hello world", NULL, NULL);
 	glfwSetWindowAspectRatio(platform.window, 16, 9);
 	platform.viewport = platform_get_viewport_size();
 
@@ -59,15 +61,15 @@ GLADloadproc platform_get_gladloadproc()
 
 int platform_read_file_alloc(const char *path, char **out_buffer, size_t *out_length)
 {
-	errno_t error;
+	int error;
 	FILE *file;
 	size_t length, output;
 	char *buffer;
 
-	error = fopen_s(&file, path, "r");
-	if (error != 0)
+	file = fopen(path, "r");
+	if (!file)
 	{
-		fprintf(stderr, "Failed to open file %s with error code %d\n", path, error);
+		fprintf(stderr, "Failed to open file %s with error code %d: %s\n", path, errno, strerror(errno));
 		return 0;
 	}
 

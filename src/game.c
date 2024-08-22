@@ -19,7 +19,7 @@ void game_update()
 void game_render()
 {
 	ColouredQuad quad;
-	quad.position = vec2_new(50.0f, 50.0f);
+	quad.position = vec2_new(200.0f, 200.0f);
 	quad.size = vec2_new(100.0f, 100.0f);
 	quad.colour = vec4_new(0.0f, 1.0f, 0.0f, 1.0f);
 	quad.angle = maths_deg_to_rad(45.0f);
