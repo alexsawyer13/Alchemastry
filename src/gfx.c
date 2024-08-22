@@ -19,9 +19,18 @@ int gfx_init()
 
 	// Load shaders
 	if (!gfx_shader_create(&gfx.colour_shader, "assets/shaders/colour.vert", "assets/shaders/colour.frag"))
+	{
+		fprintf(stderr, "Failed to create colour shader\n");
 		return 0;
+	}
 
-	// Quad rendering
+	if (!gfx_shader_create(&gfx.texture_shader, "assets/shaders/texture.vert", "assets/shaders/texture.frag"))
+	{
+		fprintf(stderr, "Failed to create texture shader\n");
+		return 0;
+	}
+
+	// Colour quad rendering
 	gfx.colour_quad_count = 0;
 
 	glCreateVertexArrays(1, &gfx.colour_quad_mesh.vao);
@@ -48,7 +57,7 @@ int gfx_init()
 	unsigned int *indices = malloc(GFX_MAX_COLOUR_QUADS * 6 * sizeof(unsigned int));
 	if (!indices)
 	{
-		fprintf(stderr, "Failed to allocate memory for quad indices");
+		fprintf(stderr, "Failed to allocate memory for colour quad indices");
 		return 0;
 	}
 
@@ -77,6 +86,62 @@ int gfx_init()
 
 	glBindVertexArray(0);
 
+	// Sprite quad rendering
+	gfx.sprite_quad_count = 0;
+	
+	glGenVertexArrays(1, &gfx.sprite_quad_mesh.vao);
+	glGenBuffers(1, &gfx.sprite_quad_mesh.vbo);
+	glGenBuffers(1, &gfx.sprite_quad_mesh.ibo);
+
+	glBindVertexArray(gfx.sprite_quad_mesh.vao);
+
+	// Vertex buffer
+
+	glBindBuffer(GL_ARRAY_BUFFER, gfx.sprite_quad_mesh.vbo);
+	glBufferData(GL_ARRAY_BUFFER, GFX_MAX_SPRITE_QUADS * 4 * 4 * sizeof(float), NULL, GL_DYNAMIC_DRAW);
+
+	gfx.sprite_quad_buffer = malloc(GFX_MAX_SPRITE_QUADS * 4 * 5 * sizeof(float));
+
+	if (!gfx.sprite_quad_buffer)
+	{
+		fprintf(stderr, "Failed to allocate memory for sprite quad buffer\n");
+		return 0;
+	}
+
+	// Index buffer
+
+	indices = malloc(GFX_MAX_SPRITE_QUADS * 6 * sizeof(unsigned int));
+	if (!indices)
+	{
+		fprintf(stderr, "Failed to allocate memory for sprite quad indices");
+		return 0;
+	}
+
+	for (int i = 0; i < GFX_MAX_SPRITE_QUADS; i++)
+	{
+		indices[i * 6 + 0] = i * 4 + 0;
+		indices[i * 6 + 1] = i * 4 + 1;
+		indices[i * 6 + 2] = i * 4 + 2;
+		indices[i * 6 + 3] = i * 4 + 2;
+		indices[i * 6 + 4] = i * 4 + 1;
+		indices[i * 6 + 5] = i * 4 + 3;
+	}
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gfx.sprite_quad_mesh.ibo);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, GFX_MAX_SPRITE_QUADS * 6 * sizeof(unsigned int), indices, GL_STATIC_DRAW);
+
+	free(indices);
+
+	// a_Pos
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
+
+	// a_TexCoord
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (const void *)(2 * sizeof(float)));
+
+	glBindVertexArray(0);
+
 	// Setup viewport
 	gfx.viewport = platform_get_viewport_size();
 	gfx_shader_unform_mat4(&gfx.colour_shader, mat4_custom_projection(vec2_new(1280.0f, 720.0f)), "u_Projection");
@@ -87,9 +152,12 @@ int gfx_init()
 void gfx_shutdown()
 {
 	gfx_shader_destroy(&gfx.colour_shader);
+	gfx_shader_destroy(&gfx.texture_shader);
 	gfx_mesh_destroy(&gfx.colour_quad_mesh);
+	gfx_mesh_destroy(&gfx.sprite_quad_mesh);
 
 	free(gfx.colour_quad_buffer);
+	free(gfx.sprite_quad_buffer);
 }
 
 void gfx_print_platform_info()
@@ -253,6 +321,7 @@ void gfx_flush_colour_quads()
 	}
 
 	glBindVertexArray(gfx.colour_quad_mesh.vao);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gfx.colour_quad_mesh.ibo);
 	glBufferData(GL_ARRAY_BUFFER, gfx.colour_quad_count * 4 * 5 * sizeof(float), gfx.colour_quad_buffer, GL_DYNAMIC_DRAW);
 	glUseProgram(gfx.colour_shader.id);
 	glDrawElements(GL_TRIANGLES, gfx.colour_quad_count * 6, GL_UNSIGNED_INT, NULL);
@@ -260,7 +329,7 @@ void gfx_flush_colour_quads()
 	gfx.colour_quad_count = 0;
 }
 
-int	gfx_shader_create(Shader *shader, const char *vertex_path, const char *fragment_path)
+int	gfx_shader_create(Shader *out_shader, const char *vertex_path, const char *fragment_path)
 {
 	char *buffer;
 	size_t length;
@@ -327,7 +396,7 @@ int	gfx_shader_create(Shader *shader, const char *vertex_path, const char *fragm
 	glDeleteShader(vert);
 	glDeleteShader(frag);
 
-	shader->id = prog;
+	out_shader->id = prog;
 
 	return 1;
 }
