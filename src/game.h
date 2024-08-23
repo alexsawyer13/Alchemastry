@@ -4,32 +4,9 @@
 #include "maths.h"
 #include "gfx.h"
 
-typedef enum
-{
-	GAME_ENEMY_TEST
-} Game_Enemy_Type;
-
 typedef struct
 {
-	Game_Enemy_Type		type;
-	vec2				position;
-	int					health;
-} Enemy;
-
-typedef struct
-{
-	Sprite 	background;
-	vec2 	path[32];
-} Map;
-
-typedef struct
-{
-	Map		maps[32];
-} Registry;
-
-typedef struct
-{
-	Map		current_map;
+	int tmp;
 } Game;
 
 int		game_init();

@@ -12,61 +12,30 @@
 Gfx gfx;
 
 const char *texture_shader_vertex_source =
-"#version 330 core\n"
+"#version 450 core\n"
 "layout (location = 0) in vec2 a_Pos;\n"
 "layout (location = 1) in vec2 a_TexCoord;\n"
-"layout (location = 2) in int  a_TextureUnit;\n"
+"layout (location = 2) in float  a_TextureUnit;\n"
 "out vec2 v_TexCoord;\n"
-"flat out int v_TextureUnit;\n"
+"flat out float v_TextureUnit;\n"
 "uniform mat4 u_Projection;\n"
 "void main()\n"
 "{\n"
-"    gl_Position = u_Projection * vec4(a_Pos, 0.0, 1.0);\n"
-"    v_TexCoord = a_TexCoord;\n"
+"	gl_Position = u_Projection * vec4(a_Pos, 0.0, 1.0);\n"
+"	v_TexCoord = a_TexCoord;\n"
+"	v_TextureUnit = a_TextureUnit;"
 "}\n";
 
 const char *texture_shader_fragment_source =
-"#version 330 core\n"
+"#version 450 core\n"
 "in vec2 v_TexCoord;\n"
-"flat in int v_TextureUnit;\n"
+"flat in float v_TextureUnit;\n"
 "out vec4 o_Colour;\n"
 "uniform sampler2D u_Texture[16];\n"
 "void main()\n"
 "{\n"
-"if (v_TextureUnit == 0)\n"
-"o_Colour = texture(u_Texture[0], v_TexCoord);\n"
-"else if (v_TextureUnit == 1)\n"
-"o_Colour = texture(u_Texture[1], v_TexCoord);\n"
-"else if (v_TextureUnit == 2)\n"
-"o_Colour = texture(u_Texture[2], v_TexCoord);\n"
-"else if (v_TextureUnit == 3)\n"
-"o_Colour = texture(u_Texture[3], v_TexCoord);\n"
-"else if (v_TextureUnit == 4)\n"
-"o_Colour = texture(u_Texture[4], v_TexCoord);\n"
-"else if (v_TextureUnit == 5)\n"
-"o_Colour = texture(u_Texture[5], v_TexCoord);\n"
-"else if (v_TextureUnit == 6)\n"
-"o_Colour = texture(u_Texture[6], v_TexCoord);\n"
-"else if (v_TextureUnit == 7)\n"
-"o_Colour = texture(u_Texture[7], v_TexCoord);\n"
-"else if (v_TextureUnit == 8)\n"
-"o_Colour = texture(u_Texture[8], v_TexCoord);\n"
-"else if (v_TextureUnit == 9)\n"
-"o_Colour = texture(u_Texture[9], v_TexCoord);\n"
-"else if (v_TextureUnit == 10)\n"
-"o_Colour = texture(u_Texture[10], v_TexCoord);\n"
-"else if (v_TextureUnit == 11)\n"
-"o_Colour = texture(u_Texture[11], v_TexCoord);\n"
-"else if (v_TextureUnit == 12)\n"
-"o_Colour = texture(u_Texture[12], v_TexCoord);\n"
-"else if (v_TextureUnit == 13)\n"
-"o_Colour = texture(u_Texture[13], v_TexCoord);\n"
-"else if (v_TextureUnit == 14)\n"
-"o_Colour = texture(u_Texture[14], v_TexCoord);\n"
-"else if (v_TextureUnit == 15)\n"
-"o_Colour = texture(u_Texture[15], v_TexCoord);\n"
-"else\n"
-"o_Colour = vec4(0.0, 0.0, 1.0, 1.0);\n"
+"int index = int(v_TextureUnit);"
+"o_Colour = texture(u_Texture[index], v_TexCoord);\n"
 "}\n"
 "\n";
 
@@ -170,9 +139,9 @@ int gfx_init()
 	// Vertex buffer
 
 	glBindBuffer(GL_ARRAY_BUFFER, gfx.sprite_quad_mesh.vbo);
-	glBufferData(GL_ARRAY_BUFFER, GFX_MAX_SPRITE_QUADS * 4 * (4 * sizeof(float) + sizeof(int)), NULL, GL_DYNAMIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, GFX_MAX_SPRITE_QUADS * 4 * 5 * sizeof(float), NULL, GL_DYNAMIC_DRAW);
 
-	gfx.sprite_quad_buffer = malloc(GFX_MAX_SPRITE_QUADS * 4 * (4 * sizeof(float) + sizeof(int)));
+	gfx.sprite_quad_buffer = malloc(GFX_MAX_SPRITE_QUADS * 4 * 5 * sizeof(float));
 
 	if (!gfx.sprite_quad_buffer)
 	{
@@ -206,15 +175,15 @@ int gfx_init()
 
 	// a_Pos
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float) + sizeof(int), 0);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), 0);
 
 	// a_TexCoord
 	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float) + sizeof(int), (const void*)(2 * sizeof(float)));
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (const void*)(2 * sizeof(float)));
 
 	// a_TextureUnit
 	glEnableVertexAttribArray(2);
-	glVertexAttribPointer(2, 1, GL_INT, GL_FALSE, 4 * sizeof(float) + sizeof(int), (const void*)(4 * sizeof(float)));
+	glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (const void*)(4 * sizeof(float)));
 
 	glBindVertexArray(0);
 
@@ -457,7 +426,7 @@ Gfx_Quad gfx_quad_colour_centred(vec2 position, vec2 size, vec4 colour, float an
 	q.quad.position = position;
 	q.quad.size = size;
 	q.quad.angle = angle;
-	q.quad.origin = GFX_ORIGIN_CENTRE;
+	q.quad.origin = MATHS_ORIGIN_CENTRE;
 	q.type = GFX_QUAD_COLOUR;
 	q.colour = colour;
 	return q;
@@ -465,44 +434,88 @@ Gfx_Quad gfx_quad_colour_centred(vec2 position, vec2 size, vec4 colour, float an
 
 void gfx_flush_sprite_quads()
 {
+	int texture_slots[16];
+	int filled_texture_slots;
+
+	memset(texture_slots, 0, 64);
+	filled_texture_slots = 0;
+
 	for (int i = 0; i < gfx.sprite_quad_count; i++)
 	{
 		Gfx_Quad *quad;
 		Quad_Vertices v;
+		int current_texture_slot;
 
 		quad = &gfx.sprite_quads[i];
 		v = maths_get_quad_vertcies(quad->quad);
 
-		int tmp = 1;
+		// Check if quad's texture is bound
+		current_texture_slot = -1;
+		for (int i = 0; i < 16; i++)
+		{
+			if (texture_slots[i] == quad->sprite.texture.id)
+			{
+				current_texture_slot = i;
+			}
+		}
 
-		gfx.sprite_quad_buffer[i * 20 + 0] = v.bottom_left.x;
-		gfx.sprite_quad_buffer[i * 20 + 1] = v.bottom_left.y;
-		gfx.sprite_quad_buffer[i * 20 + 2] = quad->sprite.tex_coord_origin.x;
-		gfx.sprite_quad_buffer[i * 20 + 3] = quad->sprite.tex_coord_origin.y;
-		gfx.sprite_quad_buffer[i * 20 + 4] = *(float*)(&tmp);
+		// If it isn't, and there's space, bind it
+		if (current_texture_slot == -1 && filled_texture_slots < 16)
+		{
+			texture_slots[filled_texture_slots] = quad->sprite.texture.id;
+			current_texture_slot = filled_texture_slots;
+			filled_texture_slots++;
+		}
 
-		gfx.sprite_quad_buffer[i * 20 + 5] = v.bottom_right.x;
-		gfx.sprite_quad_buffer[i * 20 + 6] = v.bottom_right.y;
-		gfx.sprite_quad_buffer[i * 20 + 7] = quad->sprite.tex_coord_origin.x + quad->sprite.tex_coord_size.x;
-		gfx.sprite_quad_buffer[i * 20 + 8] = quad->sprite.tex_coord_origin.y;
-		gfx.sprite_quad_buffer[i * 20 + 9] = *(float*)(&tmp);
+		// If it is now bound, batch it
 
-		gfx.sprite_quad_buffer[i * 20 + 10] = v.top_left.x;
-		gfx.sprite_quad_buffer[i * 20 + 11] = v.top_left.y;
-		gfx.sprite_quad_buffer[i * 20 + 12] = quad->sprite.tex_coord_origin.x;
-		gfx.sprite_quad_buffer[i * 20 + 13] = quad->sprite.tex_coord_origin.y + quad->sprite.tex_coord_size.y;
-		gfx.sprite_quad_buffer[i * 20 + 14] = *(float*)(&tmp);
+		if (current_texture_slot >= 0)
+		{
+			gfx.sprite_quad_buffer[i * 20 + 0] = v.bottom_left.x;
+			gfx.sprite_quad_buffer[i * 20 + 1] = v.bottom_left.y;
+			gfx.sprite_quad_buffer[i * 20 + 2] = quad->sprite.tex_coord_origin.x;
+			gfx.sprite_quad_buffer[i * 20 + 3] = quad->sprite.tex_coord_origin.y;
+			gfx.sprite_quad_buffer[i * 20 + 4] = current_texture_slot;
 
-		gfx.sprite_quad_buffer[i * 20 + 15] = v.top_right.x;
-		gfx.sprite_quad_buffer[i * 20 + 16] = v.top_right.y;
-		gfx.sprite_quad_buffer[i * 20 + 17] = quad->sprite.tex_coord_origin.x + quad->sprite.tex_coord_size.x;
-		gfx.sprite_quad_buffer[i * 20 + 18] = quad->sprite.tex_coord_origin.y + quad->sprite.tex_coord_size.y;
-		gfx.sprite_quad_buffer[i * 20 + 19] = *(float*)(&tmp);
+			gfx.sprite_quad_buffer[i * 20 + 5] = v.bottom_right.x;
+			gfx.sprite_quad_buffer[i * 20 + 6] = v.bottom_right.y;
+			gfx.sprite_quad_buffer[i * 20 + 7] = quad->sprite.tex_coord_origin.x + quad->sprite.tex_coord_size.x;
+			gfx.sprite_quad_buffer[i * 20 + 8] = quad->sprite.tex_coord_origin.y;
+			gfx.sprite_quad_buffer[i * 20 + 9] = current_texture_slot;
+
+			gfx.sprite_quad_buffer[i * 20 + 10] = v.top_left.x;
+			gfx.sprite_quad_buffer[i * 20 + 11] = v.top_left.y;
+			gfx.sprite_quad_buffer[i * 20 + 12] = quad->sprite.tex_coord_origin.x;
+			gfx.sprite_quad_buffer[i * 20 + 13] = quad->sprite.tex_coord_origin.y + quad->sprite.tex_coord_size.y;
+			gfx.sprite_quad_buffer[i * 20 + 14] = current_texture_slot;
+
+			gfx.sprite_quad_buffer[i * 20 + 15] = v.top_right.x;
+			gfx.sprite_quad_buffer[i * 20 + 16] = v.top_right.y;
+			gfx.sprite_quad_buffer[i * 20 + 17] = quad->sprite.tex_coord_origin.x + quad->sprite.tex_coord_size.x;
+			gfx.sprite_quad_buffer[i * 20 + 18] = quad->sprite.tex_coord_origin.y + quad->sprite.tex_coord_size.y;
+			gfx.sprite_quad_buffer[i * 20 + 19] = current_texture_slot;
+		}
+
+		// Otherwise put it away
+		else
+		{
+			fprintf(stderr, "CANNOT YET RENDER MORE THAN 16 TEXTURES AT ONCE\n");
+		}
+
 	}
 
+	// Bind appropriate textures
+	for (int i = 0; i < filled_texture_slots; i++)
+	{
+		glActiveTexture(GL_TEXTURE0 + i);
+		glBindTexture(GL_TEXTURE_2D, texture_slots[i]);
+	}
+
+	// Upload data to GPU
 	glBindBuffer(GL_ARRAY_BUFFER, gfx.sprite_quad_mesh.vbo);
-	glBufferData(GL_ARRAY_BUFFER, gfx.sprite_quad_count * 4 * (4 * sizeof(float) + sizeof(unsigned int)), gfx.sprite_quad_buffer, GL_DYNAMIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, gfx.sprite_quad_count * 4 * 5 * sizeof(float), gfx.sprite_quad_buffer, GL_DYNAMIC_DRAW);
 	
+	// Render!!
 	glBindVertexArray(gfx.sprite_quad_mesh.vao);
 	glUseProgram(gfx.texture_shader.id);
 	glDrawElements(GL_TRIANGLES, gfx.sprite_quad_count * 6, GL_UNSIGNED_INT, NULL);

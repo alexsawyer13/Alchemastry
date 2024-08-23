@@ -13,12 +13,6 @@ typedef struct
 
 typedef enum
 {
-	GFX_ORIGIN_CENTRE,
-	GFX_ORIGIN_BOTTOM_LEFT,
-} Gfx_Origin;
-
-typedef enum
-{
 	GFX_QUAD_COLOUR,
 	GFX_QUAD_SPRITE
 } Gfx_Quad_Type;
@@ -30,7 +24,7 @@ typedef struct
 
 typedef struct
 {
-	Texture		*texture;
+	Texture		texture;
 	vec2		tex_coord_origin;
 	vec2		tex_coord_size;
 } Sprite;

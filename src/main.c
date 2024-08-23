@@ -2,8 +2,6 @@
 #include "gfx.h"
 #include "game.h"
 
-#include <stdio.h>
-
 int main()
 {
 	if (!platform_init()) return 1;

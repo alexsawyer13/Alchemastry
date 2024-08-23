@@ -3,7 +3,7 @@
 
 #include "maths.h"
 
-#include <GLFW/glfw3.h> // TODO: GET RID OF THIS
+#include <GLFW/glfw3.h>
 
 typedef struct
 {

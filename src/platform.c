@@ -9,15 +9,14 @@ Platform platform;
 
 int platform_init()
 {
-	
-
 	if (glfwInit() == GLFW_FALSE)
 	{
 		fprintf(stderr, "Failed to initialise GLFW\n");
 		return 0;
 	}
 	
-	platform.window = glfwCreateWindow(1600, 900, "Alchemastry", NULL, NULL);
+	// platform.window = glfwCreateWindow(1600, 900, "Alchemastry", NULL, NULL);
+	platform.window = glfwCreateWindow(1920, 1080, "Alchemastry", glfwGetPrimaryMonitor(), NULL);
 	glfwSetWindowAspectRatio(platform.window, 16, 9);
 	platform.viewport = platform_get_viewport_size();
 
@@ -49,6 +48,10 @@ void platform_update()
 
 	glfwSwapBuffers(platform.window);
 	glfwPollEvents();
+
+	// TEMP
+	if (glfwGetKey(platform.window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+		glfwSetWindowShouldClose(platform.window, 1);
 
 	new_viewport = platform_get_viewport_size();
 

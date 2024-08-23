@@ -94,7 +94,6 @@ typedef struct
 	vec2			top_right;
 } Quad_Vertices;
 
-
 float			maths_deg_to_rad(float deg);
 
 Quad_Vertices	maths_get_quad_vertcies(Quad q);
