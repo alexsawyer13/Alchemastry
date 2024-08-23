@@ -116,7 +116,9 @@ int platform_read_file_alloc(const char *path, char **out_buffer, size_t *out_le
 	buffer[output] = '\0';
 
 	*out_buffer = buffer;
-	*out_length = output;
+
+	if (out_length)
+		*out_length = output;
 
 	return 1;
 }

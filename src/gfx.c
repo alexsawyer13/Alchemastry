@@ -7,8 +7,68 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <string.h>
 
 Gfx gfx;
+
+const char *texture_shader_vertex_source =
+"#version 330 core\n"
+"layout (location = 0) in vec2 a_Pos;\n"
+"layout (location = 1) in vec2 a_TexCoord;\n"
+"layout (location = 2) in int  a_TextureUnit;\n"
+"out vec2 v_TexCoord;\n"
+"flat out int v_TextureUnit;\n"
+"uniform mat4 u_Projection;\n"
+"void main()\n"
+"{\n"
+"    gl_Position = u_Projection * vec4(a_Pos, 0.0, 1.0);\n"
+"    v_TexCoord = a_TexCoord;\n"
+"}\n";
+
+const char *texture_shader_fragment_source =
+"#version 330 core\n"
+"in vec2 v_TexCoord;\n"
+"flat in int v_TextureUnit;\n"
+"out vec4 o_Colour;\n"
+"uniform sampler2D u_Texture[16];\n"
+"void main()\n"
+"{\n"
+"if (v_TextureUnit == 0)\n"
+"o_Colour = texture(u_Texture[0], v_TexCoord);\n"
+"else if (v_TextureUnit == 1)\n"
+"o_Colour = texture(u_Texture[1], v_TexCoord);\n"
+"else if (v_TextureUnit == 2)\n"
+"o_Colour = texture(u_Texture[2], v_TexCoord);\n"
+"else if (v_TextureUnit == 3)\n"
+"o_Colour = texture(u_Texture[3], v_TexCoord);\n"
+"else if (v_TextureUnit == 4)\n"
+"o_Colour = texture(u_Texture[4], v_TexCoord);\n"
+"else if (v_TextureUnit == 5)\n"
+"o_Colour = texture(u_Texture[5], v_TexCoord);\n"
+"else if (v_TextureUnit == 6)\n"
+"o_Colour = texture(u_Texture[6], v_TexCoord);\n"
+"else if (v_TextureUnit == 7)\n"
+"o_Colour = texture(u_Texture[7], v_TexCoord);\n"
+"else if (v_TextureUnit == 8)\n"
+"o_Colour = texture(u_Texture[8], v_TexCoord);\n"
+"else if (v_TextureUnit == 9)\n"
+"o_Colour = texture(u_Texture[9], v_TexCoord);\n"
+"else if (v_TextureUnit == 10)\n"
+"o_Colour = texture(u_Texture[10], v_TexCoord);\n"
+"else if (v_TextureUnit == 11)\n"
+"o_Colour = texture(u_Texture[11], v_TexCoord);\n"
+"else if (v_TextureUnit == 12)\n"
+"o_Colour = texture(u_Texture[12], v_TexCoord);\n"
+"else if (v_TextureUnit == 13)\n"
+"o_Colour = texture(u_Texture[13], v_TexCoord);\n"
+"else if (v_TextureUnit == 14)\n"
+"o_Colour = texture(u_Texture[14], v_TexCoord);\n"
+"else if (v_TextureUnit == 15)\n"
+"o_Colour = texture(u_Texture[15], v_TexCoord);\n"
+"else\n"
+"o_Colour = vec4(0.0, 0.0, 1.0, 1.0);\n"
+"}\n"
+"\n";
 
 int gfx_init()
 {
@@ -24,18 +84,24 @@ int gfx_init()
 	// Get the gfx platform info
 	glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, (GLint *) & gfx.info.max_texture_units);
 
-	// Load shaders
-	if (!gfx_shader_create(&gfx.colour_shader, "assets/shaders/colour.vert", "assets/shaders/colour.frag"))
+	// Load colour shader
+	if (!gfx_shader_create_from_file(&gfx.colour_shader, "assets/shaders/colour.vert", "assets/shaders/colour.frag"))
 	{
 		fprintf(stderr, "Failed to create colour shader\n");
 		return 0;
 	}
 
-	if (!gfx_shader_create(&gfx.texture_shader, "assets/shaders/texture.vert", "assets/shaders/texture.frag"))
+	// Generate and load texture shader
+	printf("WARNING ONLY USING 16 TEXTURE UNITS WHEN MORE ARE AVAILABLE\n");
+	if (!gfx_shader_create_from_source(&gfx.texture_shader, texture_shader_vertex_source, texture_shader_fragment_source))
 	{
 		fprintf(stderr, "Failed to create texture shader\n");
 		return 0;
 	}
+
+	// TMP
+	int ijraoij[16] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
+	gfx_shader_uniform_int_array(&gfx.texture_shader, 16, ijraoij, "u_Texture");
 
 	// Colour quad rendering
 	gfx.colour_quad_count = 0;
@@ -104,9 +170,9 @@ int gfx_init()
 	// Vertex buffer
 
 	glBindBuffer(GL_ARRAY_BUFFER, gfx.sprite_quad_mesh.vbo);
-	glBufferData(GL_ARRAY_BUFFER, GFX_MAX_SPRITE_QUADS * 4 * 4 * sizeof(float), NULL, GL_DYNAMIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, GFX_MAX_SPRITE_QUADS * 4 * (4 * sizeof(float) + sizeof(int)), NULL, GL_DYNAMIC_DRAW);
 
-	gfx.sprite_quad_buffer = malloc(GFX_MAX_SPRITE_QUADS * 4 * 4 * sizeof(float));
+	gfx.sprite_quad_buffer = malloc(GFX_MAX_SPRITE_QUADS * 4 * (4 * sizeof(float) + sizeof(int)));
 
 	if (!gfx.sprite_quad_buffer)
 	{
@@ -140,12 +206,15 @@ int gfx_init()
 
 	// a_Pos
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
-	// glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float) + sizeof(int), 0);
 
 	// a_TexCoord
 	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (const void*)(2 * sizeof(float)));
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float) + sizeof(int), (const void*)(2 * sizeof(float)));
+
+	// a_TextureUnit
+	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(2, 1, GL_INT, GL_FALSE, 4 * sizeof(float) + sizeof(int), (const void*)(4 * sizeof(float)));
 
 	glBindVertexArray(0);
 
@@ -277,50 +346,39 @@ void gfx_flush_colour_quads()
 
 	glBindVertexArray(gfx.colour_quad_mesh.vao);
 	glUseProgram(gfx.colour_shader.id);
-
 	glDrawElements(GL_TRIANGLES, gfx.colour_quad_count * 6, GL_UNSIGNED_INT, NULL);
 
 	gfx.colour_quad_count = 0;
 }
 
-int	gfx_shader_create(Shader *out_shader, const char *vertex_path, const char *fragment_path)
+int gfx_shader_create_from_source(Shader *out_shader, const char *vertex_source, const char *fragment_source)
 {
-	char *buffer;
-	size_t length;
 	GLuint prog, vert, frag;
 	GLint success;
 	char info_log[1024];
 
-	if (!platform_read_file_alloc(vertex_path, &buffer, &length))
-		return 0;
-
 	vert = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vert, 1, (const char * const *)&buffer, NULL);
+	glShaderSource(vert, 1, (const char * const *)&vertex_source, NULL);
 	glCompileShader(vert);
 
 	glGetShaderiv(vert, GL_COMPILE_STATUS, &success);
 	if (!success)
 	{
-		fprintf(stderr, "Failed to compile vertex shader %s\n", vertex_path);
+		fprintf(stderr, "Failed to compile vertex shader \n%s\n", vertex_source);
 		glDeleteShader(vert);
 		glGetShaderInfoLog(vert, 1024, NULL, info_log);
 		fprintf(stderr, "%s\n", info_log);
 		return 0;
 	}
 
-	free(buffer);
-
-	if (!platform_read_file_alloc(fragment_path, &buffer, &length))
-		return 0;
-
 	frag = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(frag, 1, (const char * const *)&buffer, NULL);
+	glShaderSource(frag, 1, (const char * const *)&fragment_source, NULL);
 	glCompileShader(frag);
 
 	glGetShaderiv(frag, GL_COMPILE_STATUS, &success);
 	if (!success)
 	{
-		fprintf(stderr, "Failed to compile fragment shader %s\n", fragment_path);
+		fprintf(stderr, "Failed to compile fragment shader \n%s\n", fragment_source);
 		glDeleteShader(vert);
 		glDeleteShader(frag);
 		glGetShaderInfoLog(frag, 1024, NULL, info_log);
@@ -336,7 +394,7 @@ int	gfx_shader_create(Shader *out_shader, const char *vertex_path, const char *f
 	glGetProgramiv(prog, GL_LINK_STATUS, &success);
 	if (!success)
 	{
-		fprintf(stderr, "Failed to link program (%s, %s)\n", vertex_path, fragment_path);
+		fprintf(stderr, "Failed to link program \n%s\n%s\n", vertex_source, fragment_source);
 		glDeleteProgram(prog);
 		glDeleteShader(vert);
 		glDeleteShader(frag);
@@ -345,12 +403,30 @@ int	gfx_shader_create(Shader *out_shader, const char *vertex_path, const char *f
 		return 0;
 	}
 
-	free(buffer);
-
 	glDeleteShader(vert);
 	glDeleteShader(frag);
 
 	out_shader->id = prog;
+
+	return 1;
+}
+
+int gfx_shader_create_from_file(Shader *out_shader, const char *vertex_path, const char *fragment_path)
+{
+	char 	*vertex_source;
+	char 	*fragment_source;
+
+	if (!platform_read_file_alloc(vertex_path, &vertex_source, NULL))
+		return 0;
+	
+	if (!platform_read_file_alloc(fragment_path, &fragment_source, NULL))
+		return 0;
+
+	if (!gfx_shader_create_from_source(out_shader, vertex_source, fragment_source))
+		return 0;
+
+	free(vertex_source);
+	free(fragment_source);
 
 	return 1;
 }
@@ -397,43 +473,38 @@ void gfx_flush_sprite_quads()
 		quad = &gfx.sprite_quads[i];
 		v = maths_get_quad_vertcies(quad->quad);
 
-		gfx.sprite_quad_buffer[i * 16 + 0] = v.bottom_left.x;
-		gfx.sprite_quad_buffer[i * 16 + 1] = v.bottom_left.y;
-		gfx.sprite_quad_buffer[i * 16 + 2] = quad->sprite.tex_coord_origin.x;
-		gfx.sprite_quad_buffer[i * 16 + 3] = quad->sprite.tex_coord_origin.y;
+		int tmp = 1;
 
-		gfx.sprite_quad_buffer[i * 16 + 4] = v.bottom_right.x;
-		gfx.sprite_quad_buffer[i * 16 + 5] = v.bottom_right.y;
-		gfx.sprite_quad_buffer[i * 16 + 6] = quad->sprite.tex_coord_origin.x + quad->sprite.tex_coord_size.x;
-		gfx.sprite_quad_buffer[i * 16 + 7] = quad->sprite.tex_coord_origin.y;
+		gfx.sprite_quad_buffer[i * 20 + 0] = v.bottom_left.x;
+		gfx.sprite_quad_buffer[i * 20 + 1] = v.bottom_left.y;
+		gfx.sprite_quad_buffer[i * 20 + 2] = quad->sprite.tex_coord_origin.x;
+		gfx.sprite_quad_buffer[i * 20 + 3] = quad->sprite.tex_coord_origin.y;
+		gfx.sprite_quad_buffer[i * 20 + 4] = *(float*)(&tmp);
 
-		gfx.sprite_quad_buffer[i * 16 + 8] = v.top_left.x;
-		gfx.sprite_quad_buffer[i * 16 + 9] = v.top_left.y;
-		gfx.sprite_quad_buffer[i * 16 + 10] = quad->sprite.tex_coord_origin.x;
-		gfx.sprite_quad_buffer[i * 16 + 11] = quad->sprite.tex_coord_origin.y + quad->sprite.tex_coord_size.y;
+		gfx.sprite_quad_buffer[i * 20 + 5] = v.bottom_right.x;
+		gfx.sprite_quad_buffer[i * 20 + 6] = v.bottom_right.y;
+		gfx.sprite_quad_buffer[i * 20 + 7] = quad->sprite.tex_coord_origin.x + quad->sprite.tex_coord_size.x;
+		gfx.sprite_quad_buffer[i * 20 + 8] = quad->sprite.tex_coord_origin.y;
+		gfx.sprite_quad_buffer[i * 20 + 9] = *(float*)(&tmp);
 
-		gfx.sprite_quad_buffer[i * 16 + 12] = v.top_right.x;
-		gfx.sprite_quad_buffer[i * 16 + 13] = v.top_right.y;
-		gfx.sprite_quad_buffer[i * 16 + 14] = quad->sprite.tex_coord_origin.x + quad->sprite.tex_coord_size.x;
-		gfx.sprite_quad_buffer[i * 16 + 15] = quad->sprite.tex_coord_origin.y + quad->sprite.tex_coord_size.y;
+		gfx.sprite_quad_buffer[i * 20 + 10] = v.top_left.x;
+		gfx.sprite_quad_buffer[i * 20 + 11] = v.top_left.y;
+		gfx.sprite_quad_buffer[i * 20 + 12] = quad->sprite.tex_coord_origin.x;
+		gfx.sprite_quad_buffer[i * 20 + 13] = quad->sprite.tex_coord_origin.y + quad->sprite.tex_coord_size.y;
+		gfx.sprite_quad_buffer[i * 20 + 14] = *(float*)(&tmp);
+
+		gfx.sprite_quad_buffer[i * 20 + 15] = v.top_right.x;
+		gfx.sprite_quad_buffer[i * 20 + 16] = v.top_right.y;
+		gfx.sprite_quad_buffer[i * 20 + 17] = quad->sprite.tex_coord_origin.x + quad->sprite.tex_coord_size.x;
+		gfx.sprite_quad_buffer[i * 20 + 18] = quad->sprite.tex_coord_origin.y + quad->sprite.tex_coord_size.y;
+		gfx.sprite_quad_buffer[i * 20 + 19] = *(float*)(&tmp);
 	}
 
-	// printf("DEBUG: FLUSHING SPRITE DATA\n");
-	// printf("(%f, %f), (%f, %f)\n", gfx.sprite_quad_buffer[0], gfx.sprite_quad_buffer[1], gfx.sprite_quad_buffer[2], gfx.sprite_quad_buffer[3]);
-	// printf("(%f, %f), (%f, %f)\n", gfx.sprite_quad_buffer[4], gfx.sprite_quad_buffer[5], gfx.sprite_quad_buffer[6], gfx.sprite_quad_buffer[7]);
-	// printf("(%f, %f), (%f, %f)\n", gfx.sprite_quad_buffer[8], gfx.sprite_quad_buffer[9], gfx.sprite_quad_buffer[10], gfx.sprite_quad_buffer[11]);
-	// printf("(%f, %f), (%f, %f)\n", gfx.sprite_quad_buffer[12], gfx.sprite_quad_buffer[13], gfx.sprite_quad_buffer[14], gfx.sprite_quad_buffer[15]);
-	// printf("DRAWING %d QUAD(S)\n", gfx.sprite_quad_count);
-	
-
 	glBindBuffer(GL_ARRAY_BUFFER, gfx.sprite_quad_mesh.vbo);
-	glBufferData(GL_ARRAY_BUFFER, gfx.sprite_quad_count * 4 * 4 * sizeof(float), gfx.sprite_quad_buffer, GL_DYNAMIC_DRAW);
-
+	glBufferData(GL_ARRAY_BUFFER, gfx.sprite_quad_count * 4 * (4 * sizeof(float) + sizeof(unsigned int)), gfx.sprite_quad_buffer, GL_DYNAMIC_DRAW);
+	
 	glBindVertexArray(gfx.sprite_quad_mesh.vao);
 	glUseProgram(gfx.texture_shader.id);
-
-	// gfx_shader_uniform_int(&gfx.texture_shader, 0, "u_Texture");
-
 	glDrawElements(GL_TRIANGLES, gfx.sprite_quad_count * 6, GL_UNSIGNED_INT, NULL);
 
 	gfx.sprite_quad_count = 0;
@@ -502,4 +573,25 @@ void gfx_opengl_error_callback(unsigned int source, unsigned int type, unsigned 
 		default:
 			break;
 	}
+}
+
+void gfx_texture_bind(Texture *texture, int texture_unit)
+{
+	glActiveTexture(GL_TEXTURE0 + texture_unit);
+	glBindTexture(GL_TEXTURE_2D, texture->id);
+}
+
+void gfx_shader_uniform_int_array(Shader *shader, int count, int *values, const char *uniform_name)
+{
+	GLint location;
+
+	location = glGetUniformLocation(shader->id, uniform_name);
+	if (location == -1)
+	{
+		fprintf(stderr, "Uniform %s cannot be found\n", uniform_name);
+		return;
+	}
+
+	glUseProgram(shader->id);
+	glUniform1iv(location, count, values);
 }

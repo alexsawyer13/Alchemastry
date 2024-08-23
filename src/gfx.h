@@ -3,8 +3,6 @@
 
 #include "maths.h"
 
-#include <stddef.h>
-
 #define GFX_MAX_COLOUR_QUADS 1024
 #define GFX_MAX_SPRITE_QUADS 1024
 
@@ -69,12 +67,12 @@ typedef struct
 	Shader			colour_shader;
 	Shader			texture_shader;
 
-	Gfx_Quad			colour_quads[GFX_MAX_COLOUR_QUADS];
+	Gfx_Quad		colour_quads[GFX_MAX_COLOUR_QUADS];
 	int				colour_quad_count;
 	Mesh			colour_quad_mesh;
 	float			*colour_quad_buffer;
 
-	Gfx_Quad			sprite_quads[GFX_MAX_SPRITE_QUADS];
+	Gfx_Quad		sprite_quads[GFX_MAX_SPRITE_QUADS];
 	int				sprite_quad_count;
 	Mesh			sprite_quad_mesh;
 	float			*sprite_quad_buffer;
@@ -92,17 +90,20 @@ void		gfx_mesh_destroy(Mesh *mesh);
 void		gfx_start_frame(vec4 bg_colour);
 void		gfx_end_frame();
 
-Gfx_Quad		gfx_quad_colour_centred(vec2 position, vec2 size, vec4 colour, float angle);
+Gfx_Quad	gfx_quad_colour_centred(vec2 position, vec2 size, vec4 colour, float angle);
 
 void		gfx_draw_quad(Gfx_Quad quad);
 void		gfx_flush_colour_quads();
 void		gfx_flush_sprite_quads();
 
-int			gfx_shader_create(Shader *out_shader, const char *vertex_path, const char *fragment_path);
+int			gfx_shader_create_from_source(Shader *out_shader, const char *vertex_source, const char *fragment_source);
+int			gfx_shader_create_from_file(Shader *out_shader, const char *vertex_path, const char *fragment_path);
 void		gfx_shader_destroy(Shader *shader);
 void		gfx_shader_unform_mat4(Shader *shader, mat4 mat, const char *uniform_name);
 void		gfx_shader_uniform_int(Shader *shader, int value, const char *uniform_name);
+void		gfx_shader_uniform_int_array(Shader *shader, int count, int *values, const char *uniform_name);
 
 int			gfx_texture_create(Texture *out_texture, const char *texture_path);
+void		gfx_texture_bind(Texture *texture, int texture_unit);
 
 #endif

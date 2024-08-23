@@ -5,18 +5,20 @@
 
 Game game;
 
-Texture tex;
-Sprite sprite;
+Texture tex[2];
+Sprite sprite[2];
 
 int game_init()
 {
-	gfx_texture_create(&tex, "assets/maps/elisha.jpg");
+	gfx_texture_create(&tex[0], "assets/maps/elisha.jpg");
+	gfx_texture_create(&tex[1], "assets/maps/test_map.png");
 
-	sprite.texture = &tex;
-	sprite.tex_coord_origin = vec2_new(0.0f, 0.0f);
-	sprite.tex_coord_size = vec2_new(1.0f, 1.0f);
+	gfx_texture_bind(&tex[0], 0);
+	gfx_texture_bind(&tex[1], 1);
 
-	printf("DEBUG: TEXTURE ID %d\n", tex.id);
+	sprite[0].texture = &tex[0];
+	sprite[0].tex_coord_origin = vec2_new(0.0f, 0.0f);
+	sprite[0].tex_coord_size = vec2_new(1.0f, 1.0f);
 
 	return 1;
 }
@@ -43,6 +45,6 @@ void game_render()
 	quad.quad.angle = 45.0f;
 	quad.quad.origin = GFX_ORIGIN_CENTRE;
 	quad.type = GFX_QUAD_SPRITE;
-	quad.sprite = sprite;
+	quad.sprite = sprite[0];
 	gfx_draw_quad(quad);
 }
