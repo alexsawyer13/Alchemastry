@@ -17,7 +17,7 @@ int platform_init()
 		return 0;
 	}
 	
-	platform.window = glfwCreateWindow(1600, 900, "Hello world", NULL, NULL);
+	platform.window = glfwCreateWindow(1600, 900, "Alchemastry", NULL, NULL);
 	glfwSetWindowAspectRatio(platform.window, 16, 9);
 	platform.viewport = platform_get_viewport_size();
 
