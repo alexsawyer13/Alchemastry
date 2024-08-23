@@ -1,6 +1,8 @@
 #include "maths.h"
 
 #include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 vec2 vec2_new(float x, float y)
 {
@@ -59,6 +61,11 @@ vec2 vec2_add_vec2(vec2 v1, vec2 v2)
 	return (vec2) { v1.x + v2.x, v1.y + v2.y };
 }
 
+vec2 vec2_sub_vec2(vec2 v1, vec2 v2)
+{
+	return (vec2) { v1.x - v2.x, v1.y - v2.y };
+}
+
 mat2 mat2_rotation_ccw(float angle)
 {
 	mat2 mat;
@@ -83,4 +90,56 @@ mat2 mat2_rotation_cw(float angle)
 	mat.a00 = cos(angle);	mat.a01 = sin(angle);
 	mat.a10 = -sin(angle);	mat.a11 = cos(angle);
 	return mat;
+}
+
+Quad_Vertices maths_get_quad_vertcies(Quad q)
+{
+	Quad_Vertices v;
+	mat2 rotation;
+	
+	rotation = mat2_rotation_ccw(q.angle);
+
+	switch(q.origin)
+	{
+		case MATHS_ORIGIN_CENTRE:
+		{
+			vec2 half_size;
+			vec2 top_offset;
+			vec2 right_offset;
+
+			half_size = vec2_mul_float(q.size, 0.5f);
+
+			top_offset = mat2_mul_vec2(rotation, vec2_new(0.0f, half_size.y));
+			right_offset = mat2_mul_vec2(rotation, vec2_new(half_size.x, 0.0f));
+
+			v.bottom_left = vec2_sub_vec2(q.position, vec2_add_vec2(top_offset, right_offset));
+			v.bottom_right = vec2_add_vec2(q.position, vec2_sub_vec2(right_offset, top_offset));
+			v.top_left = vec2_add_vec2(q.position, vec2_sub_vec2(top_offset, right_offset));
+			v.top_right = vec2_add_vec2(q.position, vec2_add_vec2(top_offset, right_offset));
+		}
+		break;
+		case MATHS_ORIGIN_BOTTOM_LEFT:
+		{
+			vec2 top_offset;
+			vec2 right_offset;
+
+			top_offset = mat2_mul_vec2(rotation, vec2_new(0.0f, q.size.y));
+			right_offset = mat2_mul_vec2(rotation, vec2_new(q.size.x, 0.0f));
+
+			v.bottom_left = q.position;
+			v.bottom_right = vec2_add_vec2(q.position, right_offset);
+			v.top_left = vec2_add_vec2(q.position, top_offset);
+			v.top_right = vec2_add_vec2(q.position, vec2_add_vec2(top_offset, right_offset));
+		}
+		break;
+		default:
+			fprintf(stderr, "Trying to get vertices of quad type %d which doesn't exist\n", q.origin);
+			v.bottom_left = vec2_new(0.0f, 0.0f);
+			v.bottom_right = vec2_new(0.0f, 0.0f);
+			v.top_left = vec2_new(0.0f, 0.0f);
+			v.top_right = vec2_new(0.0f, 0.0f);
+		break;
+	}
+
+	return v;
 }

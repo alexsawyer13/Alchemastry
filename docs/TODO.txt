@@ -11,10 +11,17 @@ How to load textures/sprites?
 Move ORIGIN into maths
 Move coordinate transforms for rotated quads into maths
 Fix rotations about bottom left
+Rotations are definitely completely wrong
 
 Currently quads use RGBA colours but only RGB are sent to the GPU
 Currently quads only have one colour instead of colours for each vertex
 
+Currently using RGB format for textures so no transparency
+
 Platform stuff
 --------------
 Changed from fopen_s back to fopen so may have warning on Windows
+
+Tools
+-----
+Remove renderdoc from /usr/local/bin so it can capture frames (oops)

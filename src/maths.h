@@ -72,23 +72,49 @@ typedef struct
 	};
 } mat4, fmat4;
 
-float	maths_deg_to_rad(float deg);
+typedef enum
+{
+	MATHS_ORIGIN_CENTRE,
+	MATHS_ORIGIN_BOTTOM_LEFT,
+} Maths_Origin;
 
-vec2	vec2_new(float x, float y);
-vec3	vec3_new(float x, float y, float z);
-vec4	vec4_new(float x, float y, float z, float w);
+typedef struct
+{
+	vec2 			position;
+	vec2 			size;
+	float 			angle;
+	Maths_Origin 	origin;
+} Quad;
 
-vec2	vec2_add_vec2(vec2 v1, vec2 v2);
-vec2	vec2_mul_float(vec2 vec, float f);
-vec2	vec2_reciprocal(vec2 vec);
+typedef struct
+{
+	vec2			bottom_left;
+	vec2			bottom_right;
+	vec2			top_left;
+	vec2			top_right;
+} Quad_Vertices;
 
-int		ivec2_eq(ivec2 v1, ivec2 v2);
 
-mat2	mat2_rotation_ccw(float angle);
-mat2	mat2_rotation_cw(float angle);
-vec2	mat2_mul_vec2(mat2 m, vec2 v);
+float			maths_deg_to_rad(float deg);
 
-mat4	mat4_identity();
-mat4	mat4_custom_projection(vec2 virtual_size);
+Quad_Vertices	maths_get_quad_vertcies(Quad q);
+
+vec2			vec2_new(float x, float y);
+vec3			vec3_new(float x, float y, float z);
+vec4			vec4_new(float x, float y, float z, float w);
+
+vec2			vec2_add_vec2(vec2 v1, vec2 v2);
+vec2			vec2_sub_vec2(vec2 v1, vec2 v2);
+vec2			vec2_mul_float(vec2 vec, float f);
+vec2			vec2_reciprocal(vec2 vec);
+
+int				ivec2_eq(ivec2 v1, ivec2 v2);
+
+mat2			mat2_rotation_ccw(float angle);
+mat2			mat2_rotation_cw(float angle);
+vec2			mat2_mul_vec2(mat2 m, vec2 v);
+
+mat4			mat4_identity();
+mat4			mat4_custom_projection(vec2 virtual_size);
 
 #endif

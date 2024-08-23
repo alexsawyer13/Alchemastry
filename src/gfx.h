@@ -3,6 +3,8 @@
 
 #include "maths.h"
 
+#include <stddef.h>
+
 #define GFX_MAX_COLOUR_QUADS 1024
 #define GFX_MAX_SPRITE_QUADS 1024
 
@@ -31,17 +33,13 @@ typedef struct
 typedef struct
 {
 	Texture		*texture;
-	vec2		tex_coord_bottom_left;
+	vec2		tex_coord_origin;
 	vec2		tex_coord_size;
 } Sprite;
 
 typedef struct
 {
-	vec2			position;
-	vec2			size;
-	float			angle;
-	Gfx_Origin		origin;
-
+	Quad 			quad;
 	Gfx_Quad_Type 	type;
 	union
 	{
@@ -49,7 +47,7 @@ typedef struct
 		Sprite		sprite;
 	};
 	
-} Quad;
+} Gfx_Quad;
 
 typedef struct
 {
@@ -71,35 +69,40 @@ typedef struct
 	Shader			colour_shader;
 	Shader			texture_shader;
 
-	Quad			colour_quads[GFX_MAX_COLOUR_QUADS];
+	Gfx_Quad			colour_quads[GFX_MAX_COLOUR_QUADS];
 	int				colour_quad_count;
 	Mesh			colour_quad_mesh;
 	float			*colour_quad_buffer;
 
-	Quad			sprite_quads[GFX_MAX_SPRITE_QUADS];
+	Gfx_Quad			sprite_quads[GFX_MAX_SPRITE_QUADS];
 	int				sprite_quad_count;
 	Mesh			sprite_quad_mesh;
 	float			*sprite_quad_buffer;
 } Gfx;
 
-int		gfx_init();
-void	gfx_shutdown();
+int			gfx_init();
+void		gfx_shutdown();
 
-void	gfx_print_platform_info();
+void		gfx_opengl_error_callback(unsigned int source, unsigned int type, unsigned int id, unsigned int severity, int length, const char* message, const void* userParam);
 
-void	gfx_mesh_destroy(Mesh *mesh);
+void		gfx_print_platform_info();
 
-void	gfx_start_frame(vec4 bg_colour);
-void	gfx_end_frame();
+void		gfx_mesh_destroy(Mesh *mesh);
 
-Quad	gfx_quad_colour_centred(vec2 position, vec2 size, vec4 colour, float angle);
+void		gfx_start_frame(vec4 bg_colour);
+void		gfx_end_frame();
 
-void	gfx_draw_quad(Quad quad);
-void	gfx_flush_colour_quads();
-void	gfx_flush_sprite_quads();
+Gfx_Quad		gfx_quad_colour_centred(vec2 position, vec2 size, vec4 colour, float angle);
 
-int		gfx_shader_create(Shader *shader, const char *vertex_path, const char *fragment_path);
-void	gfx_shader_destroy(Shader *shader);
-void	gfx_shader_unform_mat4(Shader *shader, mat4 mat, const char *uniform_name);
+void		gfx_draw_quad(Gfx_Quad quad);
+void		gfx_flush_colour_quads();
+void		gfx_flush_sprite_quads();
+
+int			gfx_shader_create(Shader *out_shader, const char *vertex_path, const char *fragment_path);
+void		gfx_shader_destroy(Shader *shader);
+void		gfx_shader_unform_mat4(Shader *shader, mat4 mat, const char *uniform_name);
+void		gfx_shader_uniform_int(Shader *shader, int value, const char *uniform_name);
+
+int			gfx_texture_create(Texture *out_texture, const char *texture_path);
 
 #endif

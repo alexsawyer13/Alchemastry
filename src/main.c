@@ -10,8 +10,6 @@ int main()
 	if (!gfx_init()) return 1;
 	if (!game_init()) return 1;
 
-	gfx_print_platform_info();
-
 	while (!platform_window_closed())
 	{
 		game_update();
