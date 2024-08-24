@@ -19,8 +19,21 @@ typedef enum
 
 typedef struct
 {
-	int			id;
+	int					id;
+	int					width;
+	int					height;
+	int					channels;
 } Texture;
+
+typedef struct
+{
+	Texture		texture;
+	ivec2		cell_size_pixels;
+	vec2		cell_size_tex;
+
+	float		delta;
+	float		two_delta;
+} TextureAtlas;
 
 typedef struct
 {
@@ -90,8 +103,10 @@ void		gfx_mesh_destroy(Mesh *mesh);
 void		gfx_start_frame(vec4 bg_colour);
 void		gfx_end_frame();
 
-Gfx_Quad	gfx_quad_colour_centred(vec2 position, vec2 size, vec4 colour, float angle);
+Gfx_Quad	gfx_quad_colour_centred(vec2 position, vec2 size, vec4 colour);
+Gfx_Quad	gfx_quad_colour_bl(vec2 position, vec2 size, vec4 colour);
 Gfx_Quad	gfx_quad_tex_bl(vec2 position, vec2 size, Sprite sprite);
+Gfx_Quad	gfx_quad_tex_centred(vec2 position, vec2 size, Sprite sprite);
 
 void		gfx_draw_quad(Gfx_Quad quad);
 void		gfx_flush_colour_quads();
@@ -108,5 +123,8 @@ void		gfx_set_projection(Gfx_Builtin_Shader shader, mat4 projection);
 
 int			gfx_texture_create(Texture *out_texture, const char *texture_path);
 void		gfx_texture_bind(Texture *texture, int texture_unit);
+
+int			gfx_texture_atlas_create(TextureAtlas *atlas, const char *path, ivec2 cell_size_pixels);
+Sprite		gfx_texture_atlas_sprite(TextureAtlas *atlas, ivec2 cell_coord, ivec2 cell_size);
 
 #endif

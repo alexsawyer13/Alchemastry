@@ -17,16 +17,23 @@ int platform_init()
 		return 0;
 	}
 	
-	 platform.window = glfwCreateWindow(1600, 900, "Alchemastry", NULL, NULL);
-	//platform.window = glfwCreateWindow(1920, 1080, "Alchemastry", glfwGetPrimaryMonitor(), NULL);
-	glfwSetWindowAspectRatio(platform.window, 16, 9);
-	platform.viewport = platform_get_viewport_size();
+	platform.window = glfwCreateWindow(1600, 900, "Alchemastry", NULL, NULL);
+	// platform.window = glfwCreateWindow(1920, 1080, "Alchemastry", glfwGetPrimaryMonitor(), NULL);
 
 	if (!platform.window)
 	{
 		fprintf(stderr, "Failed to create GLFW window\n");
 		return 0;
 	}
+
+	glfwSetKeyCallback(platform.window, _platform_key_callback);
+	for (int i = 0; i < GLFW_KEY_LAST; i++)
+	{
+		platform.keys[i] = PLATFORM_KEY_UP;
+	}
+
+	glfwSetWindowAspectRatio(platform.window, 16, 9);
+	platform.viewport = platform_get_viewport_size();
 
 	glfwMakeContextCurrent(platform.window);
 	glfwSwapInterval(1);
@@ -59,6 +66,14 @@ void platform_update()
 	ivec2	new_viewport;
 	double	current_time;
 	char	window_title[64];
+
+	for (int i = 0; i < GLFW_KEY_LAST; i++)
+	{
+		if (platform.keys[i] == PLATFORM_KEY_PRESSED)
+			platform.keys[i] = PLATFORM_KEY_DOWN;
+		if (platform.keys[i] == PLATFORM_KEY_RELEASED)
+			platform.keys[i] = PLATFORM_KEY_UP;
+	}
 
 	glfwSwapBuffers(platform.window);
 	glfwPollEvents();
@@ -157,7 +172,17 @@ int platform_viewport_changed()
 
 int	platform_key_down(int keycode)
 {
-	return glfwGetKey(platform.window, keycode) == GLFW_PRESS;
+	return (platform.keys[keycode] == PLATFORM_KEY_DOWN) || (platform.keys[keycode] == PLATFORM_KEY_PRESSED);
+}
+
+int	platform_key_pressed(int keycode)
+{
+	return platform.keys[keycode] == PLATFORM_KEY_PRESSED;
+}
+
+int	platform_key_released(int keycode)
+{
+	return platform.keys[keycode] == PLATFORM_KEY_RELEASED;
 }
 
 float platform_delta_time()
@@ -168,4 +193,35 @@ float platform_delta_time()
 float platform_random()
 {
 	return (float)rand() / RAND_MAX;
+}
+
+vec2 platform_mouse_position()
+{
+	vec2 pos;
+	double x;
+	double y;
+
+	glfwGetCursorPos(platform.window, &x, &y);
+
+	pos.x = (float)x;
+	pos.y = (float)y;
+
+	return pos;
+}
+
+void _platform_key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+	switch(action)
+	{
+		case GLFW_PRESS:
+			platform.keys[key] = PLATFORM_KEY_PRESSED;
+			break;
+		
+		case GLFW_RELEASE:
+			platform.keys[key] = PLATFORM_KEY_RELEASED;
+			break;
+
+		default:
+			break;
+	}
 }

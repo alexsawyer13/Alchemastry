@@ -39,18 +39,16 @@ mat4 mat4_identity()
 	return mat;
 }
 
-mat4 mat4_world_projection()
+mat4 mat4_world_to_ndc_projection(float screen_width_tiles)
 {
 	mat4 m;
 	vec2 sf;
-	float tiles_fit_horizontal;
-	float tiles_fit_vertical;
+	float screen_height_tiles;
 
-	tiles_fit_horizontal = 10.0f;
-	tiles_fit_vertical = 9.0f / 16.0f * tiles_fit_horizontal;
+	screen_height_tiles = 9.0f / 16.0f * screen_width_tiles;
 
-	sf.x = 1.0f / tiles_fit_horizontal;
-	sf.y = 1.0f / tiles_fit_vertical;
+	sf.x = 1.0f / screen_width_tiles;
+	sf.y = 1.0f / screen_height_tiles;
 
 	m.a[0] = sf.x;	m.a[1] = 0.0f;	m.a[2] = 0.0f;	m.a[3] = 0.0f;
 	m.a[4] = 0.0f;	m.a[5] = sf.y;	m.a[6] = 0.0f;	m.a[7] = 0.0f;
@@ -171,4 +169,14 @@ vec2 vec2_normalise(vec2 vec)
 	if (vec.x == 0.0f && vec.y == 0.0f) return vec;
 	inv_norm = 1.0f / sqrt(vec.x * vec.x + vec.y * vec.y);
 	return vec2_mul_float(vec, inv_norm);
+}
+
+ivec2 iv2(int x, int y)
+{
+	return (ivec2) {x, y};
+}
+
+ivec2 vec2_round_ivec2(vec2 vec)
+{
+	return (ivec2){(int)vec.x, (int)vec.y};
 }

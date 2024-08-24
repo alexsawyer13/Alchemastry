@@ -50,6 +50,10 @@ int gfx_init()
 	glEnable(GL_DEBUG_OUTPUT);
 	glDebugMessageCallback(gfx_opengl_error_callback, NULL);
 
+	// Enable transparency
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 	// Get the gfx platform info
 	glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, (GLint *) & gfx.info.max_texture_units);
 
@@ -418,13 +422,25 @@ void gfx_shader_uniform_mat4(Shader *shader, mat4 mat, const char *uniform_name)
 	glUniformMatrix4fv(location, 1, GL_TRUE, (GLfloat*) mat.a);
 }
 
-Gfx_Quad gfx_quad_colour_centred(vec2 position, vec2 size, vec4 colour, float angle)
+Gfx_Quad gfx_quad_colour_centred(vec2 position, vec2 size, vec4 colour)
 {
 	Gfx_Quad q;
 	q.quad.position = position;
 	q.quad.size = size;
-	q.quad.angle = angle;
+	q.quad.angle = 0.0f;
 	q.quad.origin = MATHS_ORIGIN_CENTRE;
+	q.type = GFX_QUAD_TYPE_COLOUR;
+	q.colour = colour;
+	return q;
+}
+
+Gfx_Quad gfx_quad_colour_bl(vec2 position, vec2 size, vec4 colour)
+{
+	Gfx_Quad q;
+	q.quad.position = position;
+	q.quad.size = size;
+	q.quad.angle = 0.0f;
+	q.quad.origin = MATHS_ORIGIN_BOTTOM_LEFT;
 	q.type = GFX_QUAD_TYPE_COLOUR;
 	q.colour = colour;
 	return q;
@@ -526,6 +542,7 @@ int	gfx_texture_create(Texture *out_texture, const char *texture_path)
 	int 			width, height, channels;
 	unsigned char 	*buffer;
 	GLuint 			texture;
+	GLint			in_format;
 
 	stbi_set_flip_vertically_on_load(1);
 	buffer = stbi_load(texture_path, &width, &height, &channels, 0);
@@ -545,8 +562,27 @@ int	gfx_texture_create(Texture *out_texture, const char *texture_path)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, (const void*)buffer);
+	switch(channels)
+	{
+		case 3:
+			in_format = GL_RGB;
+		break;
 
+		case 4:
+			in_format = GL_RGBA;
+		break;
+
+		default:
+			fprintf(stderr, "UNKNOWN IMAGE FORMAT WITH %d CHANNELS\n", channels);
+			return 0;
+		break;
+	}
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)buffer);
+
+	out_texture->width = width;
+	out_texture->height = height;
+	out_texture->channels = channels;
 	out_texture->id = texture;
 
 	return 1;
@@ -615,6 +651,18 @@ Gfx_Quad gfx_quad_tex_bl(vec2 position, vec2 size, Sprite sprite)
 	return q;
 }
 
+Gfx_Quad gfx_quad_tex_centred(vec2 position, vec2 size, Sprite sprite)
+{
+	Gfx_Quad q;
+	q.quad.position = position;
+	q.quad.size = size;
+	q.quad.angle = 0.0f;
+	q.quad.origin = MATHS_ORIGIN_CENTRE;
+	q.type = GFX_QUAD_TYPE_SPRITE;	
+	q.sprite = sprite;
+	return q;
+}
+
 void gfx_set_projection(Gfx_Builtin_Shader shader, mat4 projection)
 {
 	Shader *s;
@@ -634,4 +682,36 @@ void gfx_set_projection(Gfx_Builtin_Shader shader, mat4 projection)
 	}
 
 	gfx_shader_uniform_mat4(s, projection, "u_Projection");
+}
+
+int gfx_texture_atlas_create(TextureAtlas *atlas, const char *path, ivec2 cell_size_pixels)
+{
+	Texture texture;
+
+	if (!gfx_texture_create(&texture, path))
+	{
+		fprintf(stderr, "Failed to create texture atlas %s\n", path);
+		return 0;
+	}
+
+	atlas->texture = texture;
+	atlas->cell_size_pixels = cell_size_pixels;
+	atlas->cell_size_tex.x = (float)cell_size_pixels.x / texture.width;
+	atlas->cell_size_tex.y = (float)cell_size_pixels.x / texture.height;
+
+	atlas->delta = 0.0005f;
+	atlas->two_delta = 2 * atlas->delta;
+
+	return 1;
+}
+
+Sprite gfx_texture_atlas_sprite(TextureAtlas *atlas, ivec2 cell_coord, ivec2 cell_size)
+{
+	Sprite sprite;
+
+	sprite.texture = atlas->texture;
+	sprite.tex_coord_origin = v2((float)cell_coord.x * atlas->cell_size_tex.x + atlas->delta, (float)cell_coord.y * atlas->cell_size_tex.y + atlas->delta);
+	sprite.tex_coord_size = v2((float)cell_size.x * atlas->cell_size_tex.x - atlas->two_delta, (float)cell_size.y * atlas->cell_size_tex.y - atlas->two_delta);
+
+	return sprite;
 }

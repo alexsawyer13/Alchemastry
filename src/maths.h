@@ -108,6 +108,7 @@ vec2			vec2_mul_float(vec2 vec, float f);
 vec2			vec2_reciprocal(vec2 vec);
 vec2			vec2_normalise(vec2 vec);
 
+ivec2			iv2(int x, int y);
 int				ivec2_eq(ivec2 v1, ivec2 v2);
 
 mat2			mat2_rotation_ccw(float angle);
@@ -115,7 +116,9 @@ mat2			mat2_rotation_cw(float angle);
 vec2			mat2_mul_vec2(mat2 m, vec2 v);
 
 mat4			mat4_identity();
-mat4			mat4_world_projection();
+mat4			mat4_world_to_ndc_projection(float screen_width_tiles);
 mat4			mat4_ui_projection(vec2 virtual_size);
+
+ivec2			vec2_round_ivec2(vec2 vec);
 
 #endif

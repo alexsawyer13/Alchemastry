@@ -24,7 +24,22 @@ typedef enum
 
 typedef struct
 {
-	TileType 	type;
+	Sprite 	sprite;
+	vec2	size;
+} ForegroundInfo;
+
+typedef enum
+{
+	FOREGROUND_NONE,
+	FOREGROUND_TREE,
+
+	FOREGROUND_COUNT
+} ForegroundType;
+
+typedef struct
+{
+	TileType 		type;
+	ForegroundType 	foreground;
 } Tile;
 
 typedef struct
@@ -34,9 +49,17 @@ typedef struct
 
 typedef struct
 {
-	TileInfo 	tiles[TILE_COUNT];
-	Texture 	tilemap;
+	TextureAtlas 	atlas;
+	Sprite			player_sprite;
+
+	TileInfo 		tiles[TILE_COUNT];
+	ForegroundInfo	foregrounds[FOREGROUND_COUNT];
 } Registry;
+
+typedef struct
+{
+	float			zoom;
+} Settings;
 
 typedef struct
 {
@@ -44,6 +67,9 @@ typedef struct
 
 	vec2		position;
 	float		speed;
+
+	vec2		mouse_position_world;
+	int			mouse_tile_index;
 } Game;
 
 int		game_init();
