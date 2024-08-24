@@ -61,7 +61,7 @@ int gfx_init()
 	}
 
 	// Generate and load texture shader
-	printf("WARNING ONLY USING 16 TEXTURE UNITS WHEN MORE ARE AVAILABLE\n");
+	printf("WARNING ONLY USING 16 TEXTURE UNITS WHEN MORE MIGHT BE AVAILABLE\n");
 	if (!gfx_shader_create_from_source(&gfx.texture_shader, texture_shader_vertex_source, texture_shader_fragment_source))
 	{
 		fprintf(stderr, "Failed to create texture shader\n");
@@ -189,8 +189,8 @@ int gfx_init()
 
 	// Setup viewport
 	gfx.viewport = platform_get_viewport_size();
-	gfx_shader_unform_mat4(&gfx.colour_shader, mat4_custom_projection(vec2_new(1280.0f, 720.0f)), "u_Projection");
-	gfx_shader_unform_mat4(&gfx.texture_shader, mat4_custom_projection(vec2_new(1280.0f, 720.0f)), "u_Projection");
+	gfx_shader_uniform_mat4(&gfx.colour_shader, mat4_ui_projection(v2(1280.0f, 720.0f)), "u_Projection");
+	gfx_shader_uniform_mat4(&gfx.texture_shader, mat4_ui_projection(v2(1280.0f, 720.0f)), "u_Projection");
 
 	// Print platform info
 	gfx_print_platform_info();
@@ -245,7 +245,7 @@ void gfx_draw_quad(Gfx_Quad quad)
 {
 	switch(quad.type)
 	{
-		case GFX_QUAD_COLOUR:
+		case GFX_QUAD_TYPE_COLOUR:
 		{
 			if (gfx.colour_quad_count >= GFX_MAX_COLOUR_QUADS)
 			{
@@ -257,7 +257,7 @@ void gfx_draw_quad(Gfx_Quad quad)
 			gfx.colour_quad_count++;
 		}
 		break;
-		case GFX_QUAD_SPRITE:
+		case GFX_QUAD_TYPE_SPRITE:
 		{
 			if (gfx.sprite_quad_count >= GFX_MAX_SPRITE_QUADS)
 			{
@@ -405,7 +405,7 @@ void gfx_shader_destroy(Shader *shader)
 	glDeleteProgram(shader->id);
 }
 
-void gfx_shader_unform_mat4(Shader *shader, mat4 mat, const char *uniform_name)
+void gfx_shader_uniform_mat4(Shader *shader, mat4 mat, const char *uniform_name)
 {
 	GLint location;
 
@@ -427,7 +427,7 @@ Gfx_Quad gfx_quad_colour_centred(vec2 position, vec2 size, vec4 colour, float an
 	q.quad.size = size;
 	q.quad.angle = angle;
 	q.quad.origin = MATHS_ORIGIN_CENTRE;
-	q.type = GFX_QUAD_COLOUR;
+	q.type = GFX_QUAD_TYPE_COLOUR;
 	q.colour = colour;
 	return q;
 }
@@ -545,7 +545,7 @@ int	gfx_texture_create(Texture *out_texture, const char *texture_path)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, (const void*)buffer);
 
@@ -571,10 +571,6 @@ void gfx_shader_uniform_int(Shader *shader, int value, const char *uniform_name)
 
 void gfx_opengl_error_callback(unsigned int source, unsigned int type, unsigned int id, unsigned int severity, int length, const char* message, const void* userParam)
 {
-//   fprintf( stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n\n",
-        //    ( type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : "" ),
-            // type, severity, message );
-	
 	switch (type)
 	{
 		case GL_DEBUG_TYPE_ERROR:
@@ -607,4 +603,37 @@ void gfx_shader_uniform_int_array(Shader *shader, int count, int *values, const 
 
 	glUseProgram(shader->id);
 	glUniform1iv(location, count, values);
+}
+
+Gfx_Quad gfx_quad_tex_bl(vec2 position, vec2 size, Sprite sprite)
+{
+	Gfx_Quad q;
+	q.quad.position = position;
+	q.quad.size = size;
+	q.quad.angle = 0.0f;
+	q.quad.origin = MATHS_ORIGIN_BOTTOM_LEFT;
+	q.type = GFX_QUAD_TYPE_SPRITE;	
+	q.sprite = sprite;
+	return q;
+}
+
+void gfx_set_projection(Gfx_Builtin_Shader shader, mat4 projection)
+{
+	Shader *s;
+
+	switch(shader)
+	{
+		case GFX_BUILTIN_SHADER_TEXTURE:
+			s = &gfx.texture_shader;
+			break;
+		case GFX_BUILTIN_SHADER_COLOUR:
+			s = &gfx.colour_shader;
+			break;
+		default:
+			fprintf(stderr, "TRYING TO SET PROJECTION OF UNKNOWN BUILTIN SHADER %d\n", shader);
+			s = NULL;
+			break;
+	}
+
+	gfx_shader_uniform_mat4(s, projection, "u_Projection");
 }

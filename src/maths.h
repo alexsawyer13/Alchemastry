@@ -98,7 +98,7 @@ float			maths_deg_to_rad(float deg);
 
 Quad_Vertices	maths_get_quad_vertcies(Quad q);
 
-vec2			vec2_new(float x, float y);
+vec2			v2(float x, float y);
 vec3			vec3_new(float x, float y, float z);
 vec4			vec4_new(float x, float y, float z, float w);
 
@@ -114,6 +114,7 @@ mat2			mat2_rotation_cw(float angle);
 vec2			mat2_mul_vec2(mat2 m, vec2 v);
 
 mat4			mat4_identity();
-mat4			mat4_custom_projection(vec2 virtual_size);
+mat4			mat4_world_projection();
+mat4			mat4_ui_projection(vec2 virtual_size);
 
 #endif

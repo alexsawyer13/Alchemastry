@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-vec2 vec2_new(float x, float y)
+vec2 v2(float x, float y)
 {
 	return (vec2) { x, y };
 }
@@ -39,16 +39,35 @@ mat4 mat4_identity()
 	return mat;
 }
 
-mat4 mat4_custom_projection(vec2 virtual_size)
+mat4 mat4_world_projection()
 {
-	mat4 mat;
+	mat4 m;
+	float invhsf;
+	float invasr;
+	float invvsf;
+
+	invhsf = 1.0f / 7.5f;
+	invasr = 9.0f / 16.0f;
+	invvsf = invhsf * invasr;
+
+	m.a[0] = invhsf; m.a[1] = 0.0f;   m.a[2] = 0.0f;  m.a[3]  = -1.0f;
+	m.a[4] = 0.0f;   m.a[5] = invvsf; m.a[6] = 0.0f;  m.a[7]  = -1.0f;
+	m.a[8] = 0.0f;   m.a[9] = 0.0f;   m.a[10] = 1.0f; m.a[11] = 0.0f;
+	m.a[12] = 0.0f;  m.a[13] = 0.0f;  m.a[14] = 0.0f; m.a[15] = 1.0f;
+
+	return m;
+}
+
+mat4 mat4_ui_projection(vec2 virtual_size)
+{
+	mat4 m;
 	vec2 sf;
 	sf = vec2_reciprocal(vec2_mul_float(virtual_size, 0.5f));
-	mat.a[0] = sf.x;	mat.a[1] = 0.0f;	mat.a[2] = 0.0f;	mat.a[3] = -1.0f;
-	mat.a[4] = 0.0f;	mat.a[5] = sf.y;	mat.a[6] = 0.0f;	mat.a[7] = -1.0f;
-	mat.a[8] = 0.0f;	mat.a[9] = 0.0f;	mat.a[10] = 1.0f;	mat.a[11] = 0.0f;
-	mat.a[12] = 0.0f;	mat.a[13] = 0.0f;	mat.a[14] = 0.0f;	mat.a[15] = 1.0f;
-	return mat;
+	m.a[0] = sf.x;	m.a[1] = 0.0f;	m.a[2] = 0.0f;	m.a[3] = -1.0f;
+	m.a[4] = 0.0f;	m.a[5] = sf.y;	m.a[6] = 0.0f;	m.a[7] = -1.0f;
+	m.a[8] = 0.0f;	m.a[9] = 0.0f;	m.a[10] = 1.0f;	m.a[11] = 0.0f;
+	m.a[12] = 0.0f;	m.a[13] = 0.0f;	m.a[14] = 0.0f;	m.a[15] = 1.0f;
+	return m;
 }
 
 int ivec2_eq(ivec2 v1, ivec2 v2)
@@ -109,8 +128,8 @@ Quad_Vertices maths_get_quad_vertcies(Quad q)
 
 			half_size = vec2_mul_float(q.size, 0.5f);
 
-			top_offset = mat2_mul_vec2(rotation, vec2_new(0.0f, half_size.y));
-			right_offset = mat2_mul_vec2(rotation, vec2_new(half_size.x, 0.0f));
+			top_offset = mat2_mul_vec2(rotation, v2(0.0f, half_size.y));
+			right_offset = mat2_mul_vec2(rotation, v2(half_size.x, 0.0f));
 
 			v.bottom_left = vec2_sub_vec2(q.position, vec2_add_vec2(top_offset, right_offset));
 			v.bottom_right = vec2_add_vec2(q.position, vec2_sub_vec2(right_offset, top_offset));
@@ -123,8 +142,8 @@ Quad_Vertices maths_get_quad_vertcies(Quad q)
 			vec2 top_offset;
 			vec2 right_offset;
 
-			top_offset = mat2_mul_vec2(rotation, vec2_new(0.0f, q.size.y));
-			right_offset = mat2_mul_vec2(rotation, vec2_new(q.size.x, 0.0f));
+			top_offset = mat2_mul_vec2(rotation, v2(0.0f, q.size.y));
+			right_offset = mat2_mul_vec2(rotation, v2(q.size.x, 0.0f));
 
 			v.bottom_left = q.position;
 			v.bottom_right = vec2_add_vec2(q.position, right_offset);
@@ -134,10 +153,10 @@ Quad_Vertices maths_get_quad_vertcies(Quad q)
 		break;
 		default:
 			fprintf(stderr, "Trying to get vertices of quad type %d which doesn't exist\n", q.origin);
-			v.bottom_left = vec2_new(0.0f, 0.0f);
-			v.bottom_right = vec2_new(0.0f, 0.0f);
-			v.top_left = vec2_new(0.0f, 0.0f);
-			v.top_right = vec2_new(0.0f, 0.0f);
+			v.bottom_left = v2(0.0f, 0.0f);
+			v.bottom_right = v2(0.0f, 0.0f);
+			v.top_left = v2(0.0f, 0.0f);
+			v.top_right = v2(0.0f, 0.0f);
 		break;
 	}
 
