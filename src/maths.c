@@ -14,7 +14,7 @@ vec3 vec3_new(float x, float y, float z)
 	return (vec3) { x, y, z };
 }
 
-vec4 vec4_new(float x, float y, float z, float w)
+vec4 v4(float x, float y, float z, float w)
 {
 	return (vec4) { x, y, z, w };
 }
@@ -42,18 +42,20 @@ mat4 mat4_identity()
 mat4 mat4_world_projection()
 {
 	mat4 m;
-	float invhsf;
-	float invasr;
-	float invvsf;
+	vec2 sf;
+	float tiles_fit_horizontal;
+	float tiles_fit_vertical;
 
-	invhsf = 1.0f / 7.5f;
-	invasr = 9.0f / 16.0f;
-	invvsf = invhsf * invasr;
+	tiles_fit_horizontal = 10.0f;
+	tiles_fit_vertical = 9.0f / 16.0f * tiles_fit_horizontal;
 
-	m.a[0] = invhsf; m.a[1] = 0.0f;   m.a[2] = 0.0f;  m.a[3]  = -1.0f;
-	m.a[4] = 0.0f;   m.a[5] = invvsf; m.a[6] = 0.0f;  m.a[7]  = -1.0f;
-	m.a[8] = 0.0f;   m.a[9] = 0.0f;   m.a[10] = 1.0f; m.a[11] = 0.0f;
-	m.a[12] = 0.0f;  m.a[13] = 0.0f;  m.a[14] = 0.0f; m.a[15] = 1.0f;
+	sf.x = 1.0f / tiles_fit_horizontal;
+	sf.y = 1.0f / tiles_fit_vertical;
+
+	m.a[0] = sf.x;	m.a[1] = 0.0f;	m.a[2] = 0.0f;	m.a[3] = 0.0f;
+	m.a[4] = 0.0f;	m.a[5] = sf.y;	m.a[6] = 0.0f;	m.a[7] = 0.0f;
+	m.a[8] = 0.0f;	m.a[9] = 0.0f;	m.a[10] = 1.0f;	m.a[11] = 0.0f;
+	m.a[12] = 0.0f;	m.a[13] = 0.0f;	m.a[14] = 0.0f;	m.a[15] = 1.0f;
 
 	return m;
 }
@@ -161,4 +163,12 @@ Quad_Vertices maths_get_quad_vertcies(Quad q)
 	}
 
 	return v;
+}
+
+vec2 vec2_normalise(vec2 vec)
+{
+	float inv_norm;
+	if (vec.x == 0.0f && vec.y == 0.0f) return vec;
+	inv_norm = 1.0f / sqrt(vec.x * vec.x + vec.y * vec.y);
+	return vec2_mul_float(vec, inv_norm);
 }

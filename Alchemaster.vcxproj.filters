@@ -36,6 +36,9 @@
     <ClCompile Include="src\registry.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="vendor\stb\stb_image.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\platform.h">

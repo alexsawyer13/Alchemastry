@@ -100,12 +100,13 @@ Quad_Vertices	maths_get_quad_vertcies(Quad q);
 
 vec2			v2(float x, float y);
 vec3			vec3_new(float x, float y, float z);
-vec4			vec4_new(float x, float y, float z, float w);
+vec4			v4(float x, float y, float z, float w);
 
 vec2			vec2_add_vec2(vec2 v1, vec2 v2);
 vec2			vec2_sub_vec2(vec2 v1, vec2 v2);
 vec2			vec2_mul_float(vec2 vec, float f);
 vec2			vec2_reciprocal(vec2 vec);
+vec2			vec2_normalise(vec2 vec);
 
 int				ivec2_eq(ivec2 v1, ivec2 v2);
 

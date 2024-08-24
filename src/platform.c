@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
+#include <time.h>
+#include <math.h>
 
 Platform platform;
 
@@ -15,8 +17,8 @@ int platform_init()
 		return 0;
 	}
 	
-	// platform.window = glfwCreateWindow(1600, 900, "Alchemastry", NULL, NULL);
-	platform.window = glfwCreateWindow(1920, 1080, "Alchemastry", glfwGetPrimaryMonitor(), NULL);
+	 platform.window = glfwCreateWindow(1600, 900, "Alchemastry", NULL, NULL);
+	//platform.window = glfwCreateWindow(1920, 1080, "Alchemastry", glfwGetPrimaryMonitor(), NULL);
 	glfwSetWindowAspectRatio(platform.window, 16, 9);
 	platform.viewport = platform_get_viewport_size();
 
@@ -27,6 +29,11 @@ int platform_init()
 	}
 
 	glfwMakeContextCurrent(platform.window);
+	glfwSwapInterval(1);
+
+	platform.current_time = glfwGetTime();
+
+	srand(time(0));
 
 	return 1;
 }
@@ -37,6 +44,11 @@ void platform_shutdown()
 	glfwTerminate();
 }
 
+void platform_window_close()
+{
+	glfwSetWindowShouldClose(platform.window, 1);
+}
+
 int platform_window_closed()
 {
 	return glfwWindowShouldClose(platform.window);
@@ -44,19 +56,24 @@ int platform_window_closed()
 
 void platform_update()
 {
-	ivec2 new_viewport;
+	ivec2	new_viewport;
+	double	current_time;
+	char	window_title[64];
 
 	glfwSwapBuffers(platform.window);
 	glfwPollEvents();
-
-	// TEMP
-	if (glfwGetKey(platform.window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-		glfwSetWindowShouldClose(platform.window, 1);
 
 	new_viewport = platform_get_viewport_size();
 
 	platform.viewport_changed = !ivec2_eq(platform.viewport, new_viewport);
 	platform.viewport = new_viewport;
+
+	current_time = glfwGetTime();
+	platform.delta_time = (float)(current_time - platform.current_time);
+	platform.current_time = current_time;
+
+	sprintf(window_title, "Alchemastry - %d FPS", (int)roundf(1.0f / platform.delta_time));
+	glfwSetWindowTitle(platform.window, window_title);
 }
 
 GLADloadproc platform_get_gladloadproc()
@@ -136,4 +153,19 @@ ivec2 platform_get_viewport_size()
 int platform_viewport_changed()
 {
 	return platform.viewport_changed;
+}
+
+int	platform_key_down(int keycode)
+{
+	return glfwGetKey(platform.window, keycode) == GLFW_PRESS;
+}
+
+float platform_delta_time()
+{
+	return platform.delta_time;
+}
+
+float platform_random()
+{
+	return (float)rand() / RAND_MAX;
 }

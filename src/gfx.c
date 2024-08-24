@@ -249,7 +249,6 @@ void gfx_draw_quad(Gfx_Quad quad)
 		{
 			if (gfx.colour_quad_count >= GFX_MAX_COLOUR_QUADS)
 			{
-				printf("DEBUG: FLUSHING COLOUR QUADS");
 				gfx_flush_colour_quads();
 			}
 
@@ -261,7 +260,6 @@ void gfx_draw_quad(Gfx_Quad quad)
 		{
 			if (gfx.sprite_quad_count >= GFX_MAX_SPRITE_QUADS)
 			{
-				printf("DEBUG: FLUSHING SPRITE QUADS");
 				gfx_flush_sprite_quads();
 			}
 

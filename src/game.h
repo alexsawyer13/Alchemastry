@@ -4,6 +4,9 @@
 #include "maths.h"
 #include "gfx.h"
 
+#define MAP_SIZE_X 256
+#define MAP_SIZE_A 65536
+
 typedef struct
 {
 	Sprite 	sprite;
@@ -26,7 +29,7 @@ typedef struct
 
 typedef struct
 {
-	Tile 		tiles[16];
+	Tile 		tiles[MAP_SIZE_A];
 } Map;
 
 typedef struct
@@ -37,9 +40,10 @@ typedef struct
 
 typedef struct
 {
-	Map map;
+	Map			map;
 
-	vec2 position;
+	vec2		position;
+	float		speed;
 } Game;
 
 int		game_init();
