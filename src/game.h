@@ -18,6 +18,8 @@ typedef enum
 	TILE_NONE,
 	TILE_DIRT,
 	TILE_GRASS,
+	TILE_STONE,
+	TILE_PATH,
 
 	TILE_COUNT
 } TileType;

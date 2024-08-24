@@ -19,15 +19,28 @@ int game_init()
 
 	for (int i = 0; i < MAP_SIZE_A; i++)
 	{
+		int x;
+		int y;
+
+		y = i / MAP_SIZE_X;
+		x = i % MAP_SIZE_X;
+
 		if (platform_random() > 0.5f)
 			game.map.tiles[i].type = TILE_GRASS;
 		else
 			game.map.tiles[i].type = TILE_DIRT;
 
+		if (x == 128.0f)
+			game.map.tiles[i].type = TILE_STONE;
+
+		if (y == 128.0f)
+			game.map.tiles[i].type = TILE_PATH;
+
 		if (game.map.tiles[i].type == TILE_GRASS && platform_random() > 0.95f)
 			game.map.tiles[i].foreground = FOREGROUND_TREE;
 		else
 			game.map.tiles[i].foreground = FOREGROUND_NONE;
+		
 	}
 
 	return 1;
@@ -40,10 +53,13 @@ void game_shutdown()
 
 void game_update()
 {
-	vec2 player_direction;
-	vec2 mouse_position;
-	ivec2 mouse_position_rounded;
-	ivec2 screen_size;
+	vec2 	player_direction;
+	ivec2 	player_tile_position;
+	int		player_tile_index;
+
+	vec2 	mouse_position;
+	ivec2 	mouse_position_rounded;
+	ivec2 	screen_size;
 
 	// Get mouse position in world // TODO: IMRPOVE THIS
 
@@ -67,6 +83,9 @@ void game_update()
 
 	// Player movement
 
+	player_tile_position = vec2_round_ivec2(game.position);
+	player_tile_index = player_tile_position.y * MAP_SIZE_X + player_tile_position.x;
+
 	player_direction = v2(0.0f, 0.0f);	
 
 	if (platform_key_down(GLFW_KEY_W))
@@ -79,7 +98,7 @@ void game_update()
 		player_direction.x -= 1.0f;
 	
 	if (player_direction.x != 0.0f && player_direction.y != 0.0f);
-		game.position = vec2_add_vec2(game.position, vec2_mul_float(vec2_normalise(player_direction), game.speed * platform_delta_time()));
+		game.position = vec2_add_vec2(game.position, vec2_mul_float(vec2_normalise(player_direction), game.speed * reg.tiles[game.map.tiles[player_tile_index].type].speed_multiplier * platform_delta_time()));
 
 	// Click
 	if (platform_key_pressed(GLFW_KEY_E))

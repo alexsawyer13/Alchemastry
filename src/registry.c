@@ -8,7 +8,7 @@ void registry_init()
 {
 	gfx_texture_atlas_create(&reg.atlas, "assets/tiles/atlas.png", iv2(8, 8));
 
-	reg.player_sprite = gfx_texture_atlas_sprite(&reg.atlas, iv2(3, 0), iv2(1, 2));
+	reg.player_sprite = gfx_texture_atlas_sprite(&reg.atlas, iv2(2, 1), iv2(1, 2));
 
 	reg.tiles[TILE_NONE] = (TileInfo){
 		.speed_multiplier = 1.0f,
@@ -23,6 +23,16 @@ void registry_init()
 	reg.tiles[TILE_DIRT] = (TileInfo){
 		.speed_multiplier = 1.0,
 		.sprite = gfx_texture_atlas_sprite(&reg.atlas, iv2(2, 0), iv2(1, 1))
+	};
+
+	reg.tiles[TILE_STONE] = (TileInfo){
+		.speed_multiplier = 1.0,
+		.sprite = gfx_texture_atlas_sprite(&reg.atlas, iv2(3, 0), iv2(1, 1))
+	};
+
+	reg.tiles[TILE_PATH] = (TileInfo){
+		.speed_multiplier = 2.0,
+		.sprite = gfx_texture_atlas_sprite(&reg.atlas, iv2(4, 0), iv2(1, 1))
 	};
 
 	reg.foregrounds[FOREGROUND_NONE] = (ForegroundInfo){
