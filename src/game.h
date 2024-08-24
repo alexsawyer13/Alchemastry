@@ -34,6 +34,7 @@ typedef enum
 {
 	FOREGROUND_NONE,
 	FOREGROUND_TREE,
+	FOREGROUND_ROCK,
 
 	FOREGROUND_COUNT
 } ForegroundType;

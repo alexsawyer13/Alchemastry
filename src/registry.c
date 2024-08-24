@@ -45,4 +45,9 @@ void registry_init()
 		.size = v2(1.0f, 2.0f)
 	};
 
+	reg.foregrounds[FOREGROUND_ROCK] = (ForegroundInfo){
+		.sprite = gfx_texture_atlas_sprite(&reg.atlas, iv2(1, 1), iv2(1, 1)),
+		.size = v2(1.0f, 1.0f)
+	};
+
 }

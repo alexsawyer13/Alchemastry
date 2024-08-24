@@ -25,6 +25,9 @@ int game_init()
 		y = i / MAP_SIZE_X;
 		x = i % MAP_SIZE_X;
 
+		game.map.tiles[i].type = TILE_NONE;
+		game.map.tiles[i].foreground = FOREGROUND_NONE;
+
 		if (platform_random() > 0.5f)
 			game.map.tiles[i].type = TILE_GRASS;
 		else
@@ -38,8 +41,9 @@ int game_init()
 
 		if (game.map.tiles[i].type == TILE_GRASS && platform_random() > 0.95f)
 			game.map.tiles[i].foreground = FOREGROUND_TREE;
-		else
-			game.map.tiles[i].foreground = FOREGROUND_NONE;
+
+		if (game.map.tiles[i].type == TILE_STONE && platform_random() > 0.9f)
+			game.map.tiles[i].foreground = FOREGROUND_ROCK;
 		
 	}
 
@@ -103,10 +107,7 @@ void game_update()
 	// Click
 	if (platform_key_pressed(GLFW_KEY_E))
 	{
-		if (game.map.tiles[game.mouse_tile_index].foreground == FOREGROUND_TREE)
-		{
-			game.map.tiles[game.mouse_tile_index].foreground = FOREGROUND_NONE;
-		}
+		game.map.tiles[game.mouse_tile_index].foreground = FOREGROUND_NONE;
 	}
 }
 
