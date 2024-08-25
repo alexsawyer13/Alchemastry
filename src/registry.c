@@ -15,62 +15,62 @@ void registry_init()
 
 	reg.player_sprite = gfx_texture_atlas_sprite(&reg.atlas, iv2(2, 1), iv2(1, 2));
 
-	reg.tiles[TILE_NONE] = (TileInfo){
+	reg.tiles[TILE_NONE] = (Tile_Info){
 		.speed_multiplier = 1.0f,
 		.sprite = gfx_texture_atlas_sprite(&reg.atlas, iv2(0, 0), iv2(1, 1))
 	};
 
-	reg.tiles[TILE_GRASS] = (TileInfo){
+	reg.tiles[TILE_GRASS] = (Tile_Info){
 		.speed_multiplier = 1.0,
 		.sprite = gfx_texture_atlas_sprite(&reg.atlas, iv2(1, 0), iv2(1, 1))
 	};
 
-	reg.tiles[TILE_DIRT] = (TileInfo){
+	reg.tiles[TILE_DIRT] = (Tile_Info){
 		.speed_multiplier = 1.0,
 		.sprite = gfx_texture_atlas_sprite(&reg.atlas, iv2(2, 0), iv2(1, 1))
 	};
 
-	reg.tiles[TILE_STONE] = (TileInfo){
+	reg.tiles[TILE_STONE] = (Tile_Info){
 		.speed_multiplier = 1.0,
 		.sprite = gfx_texture_atlas_sprite(&reg.atlas, iv2(3, 0), iv2(1, 1))
 	};
 
-	reg.tiles[TILE_PATH] = (TileInfo){
+	reg.tiles[TILE_PATH] = (Tile_Info){
 		.speed_multiplier = 2.0,
 		.sprite = gfx_texture_atlas_sprite(&reg.atlas, iv2(4, 0), iv2(1, 1))
 	};
 
-	reg.foregrounds[FOREGROUND_NONE] = (ForegroundInfo){
+	reg.foregrounds[FOREGROUND_NONE] = (Foreground_Info){
 		.sprite = gfx_texture_atlas_sprite(&reg.atlas, iv2(0, 0), iv2(1, 1)),
 		.size = v2(1.0f, 1.0f)
 	};
 
-	reg.foregrounds[FOREGROUND_TREE] = (ForegroundInfo){
+	reg.foregrounds[FOREGROUND_TREE] = (Foreground_Info){
 		.sprite = gfx_texture_atlas_sprite(&reg.atlas, iv2(0, 1), iv2(1, 2)),
 		.size = v2(1.0f, 2.0f)
 	};
 
-	reg.foregrounds[FOREGROUND_ROCK] = (ForegroundInfo){
+	reg.foregrounds[FOREGROUND_ROCK] = (Foreground_Info){
 		.sprite = gfx_texture_atlas_sprite(&reg.atlas, iv2(1, 1), iv2(1, 1)),
 		.size = v2(1.0f, 1.0f)
 	};
 
-	reg.items[ITEM_NONE] = (ItemInfo){
+	reg.items[ITEM_NONE] = (Item_Info){
 		.max_stack = 0,
 		.sprite = gfx_texture_atlas_sprite(&reg.atlas, iv2(0, 0), iv2(1, 1))
 	};
 
-	reg.items[ITEM_WOOD] = (ItemInfo){
+	reg.items[ITEM_WOOD] = (Item_Info){
 		.max_stack = 999,
 		.sprite = gfx_texture_atlas_sprite(&reg.atlas, iv2(4, 1), iv2(1, 1))
 	};
 
-	reg.items[ITEM_STONE] = (ItemInfo){
+	reg.items[ITEM_STONE] = (Item_Info){
 		.max_stack = 999,
 		.sprite = gfx_texture_atlas_sprite(&reg.atlas, iv2(5, 1), iv2(1, 1))
 	};
 
-	reg.items[ITEM_ELISHA] = (ItemInfo){
+	reg.items[ITEM_ELISHA] = (Item_Info){
 		.max_stack = 1,
 		.sprite = reg.elisha_sprite
 	};

@@ -10,16 +10,21 @@
 #define UI_HOTBAR_POSITION_X 370.0f
 #define UI_HOTBAR_POSITION_Y 0.0f
 #define UI_INVENTORY_POSITION_X 370.0f
-#define UI_INVENTORY_POSITION_Y 200.0f
+#define UI_INVENTORY_POSITION_Y 150.0f
 #define	UI_INVENTORY_CELL_SIZE 60.0f
 #define UI_INVENTORY_ITEM_OFFSET 10.0f
 #define UI_INVENTORY_ITEM_SIZE 40.0f
+#define UI_INVENTORY_ITEM_TEXT_OFFSET_X 38.0f
+#define UI_INVENTORY_ITEM_TEXT_OFFSET_Y 10.0f
+#define UI_INVENTORY_ITEM_TEXT_SIZE 15.0f
+
+#define GAME_MAX_GROUND_ITEM_COUNT 1024
 
 typedef struct
 {
 	Sprite 	sprite;
 	float 	speed_multiplier;
-} TileInfo;
+} Tile_Info;
 
 typedef enum
 {
@@ -30,13 +35,13 @@ typedef enum
 	TILE_PATH,
 
 	TILE_COUNT
-} TileType;
+} Tile_Type;
 
 typedef struct
 {
 	Sprite 	sprite;
 	vec2	size;
-} ForegroundInfo;
+} Foreground_Info;
 
 typedef enum
 {
@@ -45,12 +50,12 @@ typedef enum
 	FOREGROUND_ROCK,
 
 	FOREGROUND_COUNT
-} ForegroundType;
+} Foreground_Type;
 
 typedef struct
 {
-	TileType 		type;
-	ForegroundType 	foreground;
+	Tile_Type 			type;
+	Foreground_Type 	foreground;
 } Tile;
 
 typedef struct
@@ -66,26 +71,32 @@ typedef enum
 	ITEM_ELISHA,
 
 	ITEM_COUNT
-} ItemType;
+} Item_Type;
 
 typedef struct
 {
 	int		max_stack;
 
 	Sprite	sprite;
-} ItemInfo;
+} Item_Info;
 
 typedef struct
 {
-	ItemType	type;
+	Item_Type	type;
 	int			count;
-} ItemStack;
+} Item_Stack;
+
+typedef struct
+{
+	vec2		position;
+	Item_Stack	stack;
+} Ground_Item;
 
 typedef enum
 {
 	GAME_UI_NONE,
 	GAME_UI_INVENTORY,
-} UiPanels;
+} Ui_Panel_Type;
 
 typedef struct
 {
@@ -102,9 +113,9 @@ typedef struct
 
 	Sprite			number_sprites[10];
 
-	TileInfo 		tiles[TILE_COUNT];
-	ForegroundInfo	foregrounds[FOREGROUND_COUNT];
-	ItemInfo		items[ITEM_COUNT];
+	Tile_Info 		tiles[TILE_COUNT];
+	Foreground_Info	foregrounds[FOREGROUND_COUNT];
+	Item_Info		items[ITEM_COUNT];
 
 	Sprite			ui_hotbar_sprite;
 	Sprite			ui_hotbar_active_sprite;
@@ -117,16 +128,19 @@ typedef struct
 	vec2		position;
 	float		speed;
 
-	ItemStack	inventory[36];
-	ItemStack	inventory_hand;
+	Item_Stack	inventory[36];
+	Item_Stack	inventory_hand;
 	int			current_hotbar_slot;
+
+	Ground_Item	ground_items[GAME_MAX_GROUND_ITEM_COUNT];
+	int			ground_item_count;
 
 	vec2		mouse_position_world;
 	vec2		mouse_position_ui;
 	int			mouse_tile_index;
 	int			mouse_inventory_index;
 
-	UiPanels	current_ui;
+	Ui_Panel_Type	current_ui;
 } Game;
 
 int		game_init();
@@ -134,6 +148,8 @@ void	game_shutdown();
 
 void	game_update();
 void	game_render();
+
+void	game_ui_render_number(vec2 position, float number_size, int number);
 
 void	registry_init();
 

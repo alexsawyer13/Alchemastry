@@ -27,13 +27,22 @@ int game_init()
 		game.inventory[i].count = 0;
 	}
 
+	for (int i = 0; i < GAME_MAX_GROUND_ITEM_COUNT; i++)
+	{
+		game.ground_items[i].stack.type = ITEM_NONE;
+		game.ground_items[i].stack.count = 0;
+		game.ground_items[i].position = v2(0.0f, 0.0f);
+	}
+
+	game.ground_item_count = 0;
+
 	game.inventory_hand.type = ITEM_NONE;
 	game.inventory_hand.count = 0;
 
 	game.current_hotbar_slot = 0;
 
 	game.inventory[0].type = ITEM_WOOD;
-	game.inventory[0].count = 10;
+	game.inventory[0].count = 999;
 
 	game.inventory[1].type = ITEM_STONE;
 	game.inventory[1].count = 15;
@@ -114,10 +123,6 @@ void game_update()
 	else
 		game.mouse_inventory_index = -1;
 
-	// game.mouse_inventory_index = mouse_inventory_slot.y * 9 + mouse_inventory_slot.x;
-	// if (game.mouse_inventory_index < 0 || game.mouse_inventory_index >= 36)
-		// game.mouse_inventory_index = -1;
-
 	// Close window
 
 	if (platform_key_down(GLFW_KEY_ESCAPE))
@@ -148,7 +153,7 @@ void game_update()
 		{
 			if (game.mouse_inventory_index != -1)
 			{
-				ItemStack tmp;
+				Item_Stack tmp;
 				tmp = game.inventory[game.mouse_inventory_index];
 				game.inventory[game.mouse_inventory_index] = game.inventory_hand;
 				game.inventory_hand = tmp;
@@ -191,7 +196,33 @@ void game_update()
 
 	if (platform_mouse_pressed(GLFW_MOUSE_BUTTON_LEFT))
 	{
+		Foreground_Type type;
+
+		type = game.map.tiles[game.mouse_tile_index].foreground;
 		game.map.tiles[game.mouse_tile_index].foreground = FOREGROUND_NONE;
+
+		if (type != FOREGROUND_NONE && game.ground_item_count < GAME_MAX_GROUND_ITEM_COUNT)
+		{
+			game.ground_items[game.ground_item_count].position = v2((float)(game.mouse_tile_index%MAP_SIZE_X), (float)(game.mouse_tile_index/MAP_SIZE_X));
+
+			switch(type)
+			{
+				case FOREGROUND_TREE:
+				game.ground_items[game.ground_item_count].stack.type = ITEM_WOOD;
+				game.ground_items[game.ground_item_count].stack.count = 5;
+				break;
+
+				case FOREGROUND_ROCK:
+				game.ground_items[game.ground_item_count].stack.type = ITEM_STONE;
+				game.ground_items[game.ground_item_count].stack.count = 3;
+				break;
+
+				default:
+				break;
+			}
+
+			game.ground_item_count++;
+		}
 	}
 
 	if (platform_mouse_down(GLFW_MOUSE_BUTTON_RIGHT))
@@ -219,11 +250,22 @@ void game_render()
 
 			from_player = vec2_sub_vec2(v2((float)x, (float)y), game.position);
 
-			if (y*MAP_SIZE_X + x == game.mouse_tile_index)
+			if (y*MAP_SIZE_X + x == game.mouse_tile_index && game.current_ui == GAME_UI_NONE)
 				gfx_draw_quad(gfx_quad_tex_bl(from_player, v2(1.0f, 1.0f), reg.tiles[TILE_NONE].sprite));
+				// gfx_draw_quad(gfx_quad_colour_bl(from_player, v2(1.0f, 1.0f), v4(0.7f, 0.7f, 0.7f, 0.5f)));
 			else
 				gfx_draw_quad(gfx_quad_tex_bl(from_player, v2(1.0f, 1.0f), reg.tiles[t->type].sprite));
 		}
+	}
+
+	for (int i = 0; i < GAME_MAX_GROUND_ITEM_COUNT; i++)
+	{
+		Ground_Item *item;
+
+		item = &game.ground_items[i];
+
+		if (item->stack.type != ITEM_NONE && item->stack.count > 0)
+			gfx_draw_quad(gfx_quad_tex_bl(vec2_sub_vec2(vec2_add_vec2(item->position, v2(0.1f, 0.1f)), game.position), v2(0.8f, 0.8f), reg.items[ITEM_WOOD].sprite));
 	}
 
 	// Foreground elements
@@ -233,7 +275,7 @@ void game_render()
 		for (int x = 0; x < MAP_SIZE_X; x++)
 		{
 			Tile *t;
-			ForegroundInfo *f;
+			Foreground_Info *f;
 			vec2 from_player;
 
 			t = &game.map.tiles[y*MAP_SIZE_X + x];
@@ -258,7 +300,7 @@ void game_render()
 	
 	for (int i = 0; i < 9; i++)
 	{
-		ItemStack stack;
+		Item_Stack stack;
 
 		if (game.current_hotbar_slot == i)
 			gfx_draw_quad(gfx_quad_tex_bl(v2(UI_HOTBAR_POSITION_X + i * UI_INVENTORY_CELL_SIZE, 0.0f), v2(UI_INVENTORY_CELL_SIZE, UI_INVENTORY_CELL_SIZE), reg.ui_hotbar_active_sprite));
@@ -269,7 +311,8 @@ void game_render()
 
 		if (stack.count > 0)
 		{
-			gfx_draw_quad(gfx_quad_tex_bl(v2(370.0f + i * 60.0f + 10.0f, 10.0f), v2(40.0f, 40.0f), reg.items[stack.type].sprite));
+			gfx_draw_quad(gfx_quad_tex_bl(v2(UI_HOTBAR_POSITION_X + i * UI_INVENTORY_CELL_SIZE + UI_INVENTORY_ITEM_OFFSET, UI_INVENTORY_ITEM_OFFSET), v2(UI_INVENTORY_ITEM_SIZE, UI_INVENTORY_ITEM_SIZE), reg.items[stack.type].sprite));
+			game_ui_render_number(v2(UI_HOTBAR_POSITION_X + i * UI_INVENTORY_CELL_SIZE + UI_INVENTORY_ITEM_TEXT_OFFSET_X, UI_INVENTORY_ITEM_TEXT_OFFSET_Y), UI_INVENTORY_ITEM_TEXT_SIZE, stack.count);
 		}
 	}
 
@@ -281,7 +324,7 @@ void game_render()
 		{
 			for (int i = 0; i < 9; i++)
 			{
-				ItemStack stack;
+				Item_Stack stack;
 
 				if (game.mouse_inventory_index == j*9 + i)
 					gfx_draw_quad(gfx_quad_tex_bl(v2(UI_INVENTORY_POSITION_X + i * UI_INVENTORY_CELL_SIZE, UI_INVENTORY_POSITION_Y + UI_INVENTORY_CELL_SIZE * j), v2(UI_INVENTORY_CELL_SIZE, UI_INVENTORY_CELL_SIZE), reg.ui_hotbar_active_sprite));
@@ -293,11 +336,32 @@ void game_render()
 				if (stack.count > 0)
 				{
 					gfx_draw_quad(gfx_quad_tex_bl(v2(UI_INVENTORY_POSITION_X + i * UI_INVENTORY_CELL_SIZE + UI_INVENTORY_ITEM_OFFSET, UI_INVENTORY_POSITION_Y + UI_INVENTORY_ITEM_OFFSET + UI_INVENTORY_CELL_SIZE * j), v2(UI_INVENTORY_ITEM_SIZE, UI_INVENTORY_ITEM_SIZE), reg.items[stack.type].sprite));
+					game_ui_render_number(v2(UI_INVENTORY_POSITION_X + i * UI_INVENTORY_CELL_SIZE + UI_INVENTORY_ITEM_TEXT_OFFSET_X, UI_INVENTORY_POSITION_Y + UI_INVENTORY_ITEM_TEXT_OFFSET_Y + UI_INVENTORY_CELL_SIZE * j), UI_INVENTORY_ITEM_TEXT_SIZE, stack.count);
 				}
 			}
 		}
 
 		if (game.inventory_hand.count > 0 && game.inventory_hand.type != ITEM_NONE)
+		{
 			gfx_draw_quad(gfx_quad_tex_centred(game.mouse_position_ui, v2(UI_INVENTORY_ITEM_SIZE, UI_INVENTORY_ITEM_SIZE), reg.items[game.inventory_hand.type].sprite));
+			// game_ui_render_number(vec2_add_vec2(game.mouse_position_ui, v2(UI_INVENTORY_ITEM_TEXT_OFFSET_X, UI_INVENTORY_ITEM_TEXT_OFFSET_Y)), UI_INVENTORY_ITEM_TEXT_SIZE, game.inventory_hand.count);
+		}
+	}
+}
+
+void game_ui_render_number(vec2 position, float number_size, int number)
+{
+	int index = 0;
+
+	while (number > 0)
+	{
+		int digit;
+
+		digit = number % 10;
+		number = number / 10;
+
+		gfx_draw_quad(gfx_quad_tex_bl(vec2_sub_vec2(position, v2(number_size * index, 0.0f)), v2(number_size, number_size), reg.number_sprites[digit]));
+
+		index++;
 	}
 }
