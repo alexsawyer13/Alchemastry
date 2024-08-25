@@ -27,9 +27,16 @@ int platform_init()
 	}
 
 	glfwSetKeyCallback(platform.window, _platform_key_callback);
+	glfwSetMouseButtonCallback(platform.window, _platform_mouse_button_callback);
+
 	for (int i = 0; i < GLFW_KEY_LAST; i++)
 	{
 		platform.keys[i] = PLATFORM_KEY_UP;
+	}
+
+	for (int i = 0; i < GLFW_MOUSE_BUTTON_LAST; i++)
+	{
+		platform.mouse[i] = PLATFORM_KEY_UP;
 	}
 
 	glfwSetWindowAspectRatio(platform.window, 16, 9);
@@ -73,6 +80,14 @@ void platform_update()
 			platform.keys[i] = PLATFORM_KEY_DOWN;
 		if (platform.keys[i] == PLATFORM_KEY_RELEASED)
 			platform.keys[i] = PLATFORM_KEY_UP;
+	}
+
+	for (int i = 0; i < GLFW_MOUSE_BUTTON_LAST; i++)
+	{
+		if (platform.mouse[i] == PLATFORM_KEY_PRESSED)
+			platform.mouse[i] = PLATFORM_KEY_DOWN;
+		if (platform.mouse[i] == PLATFORM_KEY_RELEASED)
+			platform.mouse[i] = PLATFORM_KEY_UP;
 	}
 
 	glfwSwapBuffers(platform.window);
@@ -224,4 +239,36 @@ void _platform_key_callback(GLFWwindow* window, int key, int scancode, int actio
 		default:
 			break;
 	}
+}
+
+void _platform_mouse_button_callback(GLFWwindow *window, int button, int action, int mods)
+{
+	switch(action)
+	{
+		case GLFW_PRESS:
+			platform.mouse[button] = PLATFORM_KEY_PRESSED;
+			break;
+		
+		case GLFW_RELEASE:
+			platform.mouse[button] = PLATFORM_KEY_RELEASED;
+			break;
+
+		default:
+			break;
+	}
+}
+
+int platform_mouse_down(int button)
+{
+	return (platform.mouse[button] == PLATFORM_KEY_DOWN) || (platform.mouse[button] == PLATFORM_KEY_PRESSED);
+}
+
+int	platform_mouse_pressed(int button)
+{
+	return platform.mouse[button] == PLATFORM_KEY_PRESSED;
+}
+
+int	platform_mouse_released(int button)
+{
+	return platform.mouse[button] == PLATFORM_KEY_RELEASED;
 }

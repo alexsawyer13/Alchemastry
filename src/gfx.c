@@ -578,7 +578,7 @@ int	gfx_texture_create(Texture *out_texture, const char *texture_path)
 		break;
 	}
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)buffer);
+	glTexImage2D(GL_TEXTURE_2D, 0, in_format, width, height, 0, in_format, GL_UNSIGNED_BYTE, (const void*)buffer);
 
 	out_texture->width = width;
 	out_texture->height = height;

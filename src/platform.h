@@ -24,6 +24,7 @@ typedef struct
 	float				delta_time;
 
 	Platform_Keystate 	keys[GLFW_KEY_LAST];
+	Platform_Keystate	mouse[GLFW_MOUSE_BUTTON_LAST];
 } Platform;
 
 int 	platform_init();
@@ -35,9 +36,15 @@ int 	platform_window_closed();
 void	platform_window_close();
 
 void 	_platform_key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
+void	_platform_mouse_button_callback(GLFWwindow *window, int button, int action, int mods);
+
 int		platform_key_down(int keycode);
 int		platform_key_pressed(int keycode);
 int		platform_key_released(int keycode);
+
+int		platform_mouse_down(int button);
+int		platform_mouse_pressed(int button);
+int		platform_mouse_released(int button);
 vec2	platform_mouse_position();
 
 ivec2 	platform_get_viewport_size();
