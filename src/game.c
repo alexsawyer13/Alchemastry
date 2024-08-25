@@ -109,9 +109,14 @@ void game_update()
 	game.mouse_position_ui.y = (float)(screen_size.y - mouse_position.y) / screen_size.y * 720.0f;
 
 	mouse_inventory_slot = vec2_round_ivec2(vec2_mul_float(vec2_sub_vec2(game.mouse_position_ui, v2(UI_INVENTORY_POSITION_X, UI_INVENTORY_POSITION_Y)), 1.0f/UI_INVENTORY_CELL_SIZE));
-	game.mouse_inventory_index = mouse_inventory_slot.y * 9 + mouse_inventory_slot.x;
-	if (game.mouse_inventory_index < 0 && game.mouse_inventory_index >= 36)
+	if (mouse_inventory_slot.x >= 0 && mouse_inventory_slot.x < 9 && mouse_inventory_slot.y >= 0 && mouse_inventory_slot.y < 4)
+		game.mouse_inventory_index = mouse_inventory_slot.y * 9 + mouse_inventory_slot.x;		
+	else
 		game.mouse_inventory_index = -1;
+
+	// game.mouse_inventory_index = mouse_inventory_slot.y * 9 + mouse_inventory_slot.x;
+	// if (game.mouse_inventory_index < 0 || game.mouse_inventory_index >= 36)
+		// game.mouse_inventory_index = -1;
 
 	// Close window
 
@@ -149,6 +154,8 @@ void game_update()
 				game.inventory_hand = tmp;
 			}
 		}
+
+		return;
 	}
 
 	// Hotbar
