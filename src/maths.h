@@ -109,7 +109,7 @@ vec2			vec2_reciprocal(vec2 vec);
 vec2			vec2_normalise(vec2 vec);
 
 ivec2			iv2(int x, int y);
-int				ivec2_eq(ivec2 v1, ivec2 v2);
+int			ivec2_eq(ivec2 v1, ivec2 v2);
 
 mat2			mat2_rotation_ccw(float angle);
 mat2			mat2_rotation_cw(float angle);

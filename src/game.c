@@ -1,6 +1,7 @@
 #include "game.h"
 #include "gfx.h"
 #include "platform.h"
+#include "log.h"
 
 Game 		game;
 Settings 	settings;
@@ -33,6 +34,7 @@ int game_init()
 	}
 
 	game.ground_item_count = 0;
+	game.ground_item_index = 0;
 
 	game.inventory_hand.type = ITEM_NONE;
 	game.inventory_hand.count = 0;
@@ -52,31 +54,34 @@ int game_init()
 
 	for (int i = 0; i < MAP_SIZE_A; i++)
 	{
+		Map_Tile *tile;
 		int x;
 		int y;
 
+		tile = &game.map.tiles[i];
 		y = i / MAP_SIZE_X;
 		x = i % MAP_SIZE_X;
 
-		game.map.tiles[i].type = TILE_NONE;
-		game.map.tiles[i].foreground = FOREGROUND_NONE;
+		tile->background = TILE_NONE;
+		tile->foreground = TILE_NONE;
+		tile->ground_object = GROUND_OBJECT_NONE;
 
 		if (platform_random() > 0.5f)
-			game.map.tiles[i].type = TILE_GRASS;
+			tile->background = TILE_GRASS;
 		else
-			game.map.tiles[i].type = TILE_DIRT;
+			tile->background = TILE_DIRT;
 
 		if (x == 128.0f)
-			game.map.tiles[i].type = TILE_STONE;
+			tile->background = TILE_STONE;
 
 		if (y == 128.0f)
-			game.map.tiles[i].type = TILE_PATH;
+			tile->foreground = TILE_PATH;
 
-		if (game.map.tiles[i].type == TILE_GRASS && platform_random() > 0.95f)
-			game.map.tiles[i].foreground = FOREGROUND_TREE;
+		if (game_get_top_tile_from_maptile(tile) == TILE_GRASS && platform_random() > 0.95f)
+			tile->ground_object = GROUND_OBJECT_TREE;
 
-		if (game.map.tiles[i].type == TILE_STONE && platform_random() > 0.9f)
-			game.map.tiles[i].foreground = FOREGROUND_ROCK;
+		if (game_get_top_tile_from_maptile(tile) == TILE_STONE && platform_random() > 0.9f)
+			tile->ground_object = GROUND_OBJECT_ROCK;
 		
 	}
 
@@ -85,21 +90,20 @@ int game_init()
 
 void game_shutdown()
 {
-
+	registry_shutdown();
 }
 
 void game_update()
 {
 	vec2 	player_direction;
 	ivec2 	player_tile_position;
-	int		player_tile_index;
+	int	player_tile_index;
 
 	vec2 	mouse_position;
-	ivec2 	mouse_position_rounded;
 	ivec2 	screen_size;
 	ivec2	mouse_inventory_slot;
 
-	// Get mouse position in world and UI // TODO: IMRPOVE THIS
+	// Get mouse position in world and UI
 
 	mouse_position = platform_mouse_position();
 	screen_size = platform_get_viewport_size();
@@ -108,9 +112,9 @@ void game_update()
 	game.mouse_position_world.y = (((float)(screen_size.y - mouse_position.y) / screen_size.y) * 2 - 1) * settings.zoom * 9.0f / 16.0f;
 
 	game.mouse_position_world = vec2_add_vec2(game.mouse_position_world, game.position);
-	mouse_position_rounded = vec2_round_ivec2(game.mouse_position_world);
+	game.mouse_tile = vec2_round_ivec2(game.mouse_position_world);
 
-	game.mouse_tile_index = mouse_position_rounded.y * MAP_SIZE_X + mouse_position_rounded.x;
+	game.mouse_tile_index = game.mouse_tile.y * MAP_SIZE_X + game.mouse_tile.x;
 
 	game.mouse_position_ui.x = (float)mouse_position.x / screen_size.x * 1280.0f;
 	game.mouse_position_ui.y = (float)(screen_size.y - mouse_position.y) / screen_size.y * 720.0f;
@@ -128,7 +132,7 @@ void game_update()
 		platform_window_close();
 	}
 
-	// Ui
+	// UI switching
 
 	if (platform_key_pressed(GLFW_KEY_E))
  	{
@@ -188,44 +192,45 @@ void game_update()
 		player_direction.x -= 1.0f;
 	
 	if (player_direction.x != 0.0f || player_direction.y != 0.0f)
-		game.position = vec2_add_vec2(game.position, vec2_mul_float(vec2_normalise(player_direction), game.speed * reg.tiles[game.map.tiles[player_tile_index].type].speed_multiplier * platform_delta_time()));
+		game.position = vec2_add_vec2(game.position, vec2_mul_float(vec2_normalise(player_direction), game.speed * TILE_INFO(game_get_top_tile(player_tile_position))->speed_multiplier * platform_delta_time()));
 
 	// Click
 
 	if (platform_mouse_pressed(GLFW_MOUSE_BUTTON_LEFT))
 	{
-		Foreground_Type type;
+		Map_Tile *mouse_tile;
+		Ground_Object_Type ground_object_type;
+		Ground_Object_Info *ground_object_info;
 
-		type = game.map.tiles[game.mouse_tile_index].foreground;
-		game.map.tiles[game.mouse_tile_index].foreground = FOREGROUND_NONE;
+		mouse_tile = game_get_maptile(game.mouse_tile);
+		ground_object_type = mouse_tile->ground_object;
+		ground_object_info = GROUND_OBJECT_INFO(ground_object_type);
+		mouse_tile->ground_object = GROUND_OBJECT_NONE;
 
-		if (type != FOREGROUND_NONE && game.ground_item_count < GAME_MAX_GROUND_ITEM_COUNT)
+		if (ground_object_type != GROUND_OBJECT_NONE)
 		{
-			game.ground_items[game.ground_item_count].position = v2((float)(game.mouse_tile_index%MAP_SIZE_X), (float)(game.mouse_tile_index/MAP_SIZE_X));
+			Drop_Stack drop;
 
-			switch(type)
+			drop = game_droptable(ground_object_info->droptable);
+
+			for (int i = 0; i < drop.stack_count; i++)
 			{
-				case FOREGROUND_TREE:
-				game.ground_items[game.ground_item_count].stack.type = ITEM_WOOD;
-				game.ground_items[game.ground_item_count].stack.count = 5;
-				break;
+				Ground_Item item;
 
-				case FOREGROUND_ROCK:
-				game.ground_items[game.ground_item_count].stack.type = ITEM_STONE;
-				game.ground_items[game.ground_item_count].stack.count = 3;
-				break;
+				item.position = v2((float)(game.mouse_tile.x), (float)(game.mouse_tile.y));
+				item.stack = drop.stacks[i];
 
-				default:
-				break;
+				game_add_ground_item(&item);
 			}
-
-			game.ground_item_count++;
 		}
 	}
 
 	if (platform_mouse_down(GLFW_MOUSE_BUTTON_RIGHT))
 	{
-		game.map.tiles[game.mouse_tile_index].type = TILE_PATH;
+		Map_Tile *mouse_tile;
+
+		mouse_tile = game_get_maptile(game.mouse_tile);
+		mouse_tile->foreground = TILE_PATH;
 	}
 }
 
@@ -241,18 +246,27 @@ void game_render()
 	{
 		for (int x = 0; x < MAP_SIZE_X; x++)
 		{
-			Tile *t;
+			Map_Tile *tile;
 			vec2 from_player;
 
-			t = &game.map.tiles[y*MAP_SIZE_X + x];
+			tile = game_get_maptile(iv2(x, y ));
 
 			from_player = vec2_sub_vec2(v2((float)x, (float)y), game.position);
 
-			if (y*MAP_SIZE_X + x == game.mouse_tile_index && game.current_ui == GAME_UI_NONE)
-				gfx_draw_quad(gfx_quad_tex_bl(from_player, v2(1.0f, 1.0f), reg.tiles[TILE_NONE].sprite));
-				// gfx_draw_quad(gfx_quad_colour_bl(from_player, v2(1.0f, 1.0f), v4(0.7f, 0.7f, 0.7f, 0.5f)));
-			else
-				gfx_draw_quad(gfx_quad_tex_bl(from_player, v2(1.0f, 1.0f), reg.tiles[t->type].sprite));
+			gfx_draw_quad(gfx_quad_tex_bl(from_player, v2(1.0f, 1.0f), TILE_INFO(game_get_top_tile_from_maptile(tile))->sprite));
+
+			// Highlight
+
+			if (ivec2_eq(iv2(x, y), game.mouse_tile) && game.current_ui == GAME_UI_NONE)
+			{
+				gfx_flush_sprite_quads();
+				gfx_draw_quad(gfx_quad_colour_bl(from_player, v2(1.0f, 1.0f), v4(0.7f, 0.7f, 0.7f, 0.2f)));
+				gfx_flush_colour_quads();
+				log_debug("(%f, %f)\n", from_player.x, from_player.y);
+			}
+
+			
+			//log_debug("(%f, %f)\n", from_player.x, from_player.y);
 		}
 	}
 
@@ -263,7 +277,7 @@ void game_render()
 		item = &game.ground_items[i];
 
 		if (item->stack.type != ITEM_NONE && item->stack.count > 0)
-			gfx_draw_quad(gfx_quad_tex_bl(vec2_sub_vec2(vec2_add_vec2(item->position, v2(0.1f, 0.1f)), game.position), v2(0.8f, 0.8f), reg.items[ITEM_WOOD].sprite));
+			gfx_draw_quad(gfx_quad_tex_bl(vec2_sub_vec2(vec2_add_vec2(item->position, v2(0.1f, 0.1f)), game.position), v2(0.8f, 0.8f), ITEM_INFO(item->stack.type)->sprite));
 	}
 
 	// Foreground elements
@@ -272,27 +286,30 @@ void game_render()
 	{
 		for (int x = 0; x < MAP_SIZE_X; x++)
 		{
-			Tile *t;
-			Foreground_Info *f;
+			Map_Tile *tile;
+			Ground_Object_Info *info;
 			vec2 from_player;
 
-			t = &game.map.tiles[y*MAP_SIZE_X + x];
-			f = &reg.foregrounds[t->foreground];
+			tile = game_get_maptile(iv2(x, y));
+			info = GROUND_OBJECT_INFO(tile->ground_object);
 
 			from_player = vec2_sub_vec2(v2((float)x, (float)y), game.position);
 
-			if (t->foreground != FOREGROUND_NONE)
-				gfx_draw_quad(gfx_quad_tex_bl(from_player, f->size, f->sprite));
+			if (tile->ground_object != GROUND_OBJECT_NONE)
+				gfx_draw_quad(gfx_quad_tex_bl(from_player, info->size, info->sprite));
 		}
 	}
 
+	// Player
+	
 	gfx_draw_quad(gfx_quad_tex_centred(v2(0.0f, 0.0f), v2(0.8, 1.6f), reg.player_sprite));
 
+	// Render UI
+
+	gfx_flush_colour_quads();
 	gfx_flush_sprite_quads();
 	gfx_set_projection(GFX_BUILTIN_SHADER_TEXTURE, mat4_ui_projection(v2(1280.0f, 720.0f)));
 	gfx_set_projection(GFX_BUILTIN_SHADER_COLOUR, mat4_ui_projection(v2(1280.0f, 720.0f)));
-
-	// Render UI
 
 	// Hotbar
 	
@@ -341,7 +358,7 @@ void game_render()
 
 		if (game.inventory_hand.count > 0 && game.inventory_hand.type != ITEM_NONE)
 		{
-			gfx_draw_quad(gfx_quad_tex_centred(game.mouse_position_ui, v2(UI_INVENTORY_ITEM_SIZE, UI_INVENTORY_ITEM_SIZE), reg.items[game.inventory_hand.type].sprite));
+			gfx_draw_quad(gfx_quad_tex_centred(game.mouse_position_ui, v2(UI_INVENTORY_ITEM_SIZE, UI_INVENTORY_ITEM_SIZE), reg.items[game.inventory_hand.type].sprite));                           
 			// game_ui_render_number(vec2_add_vec2(game.mouse_position_ui, v2(UI_INVENTORY_ITEM_TEXT_OFFSET_X, UI_INVENTORY_ITEM_TEXT_OFFSET_Y)), UI_INVENTORY_ITEM_TEXT_SIZE, game.inventory_hand.count);
 		}
 	}
@@ -362,4 +379,96 @@ void game_ui_render_number(vec2 position, float number_size, int number)
 
 		index++;
 	}
+}
+
+Map_Tile* game_get_maptile(ivec2 index)
+{
+	if (index.x < 0 || index.x >= MAP_SIZE_X || index.y < 0 || index.y >= MAP_SIZE_X)
+	{
+		log_warning("Accessing tile (%d, %d) which is outside the map\n", index.x, index.y);
+		return NULL;
+	}
+
+	return &game.map.tiles[index.y * MAP_SIZE_X + index.x];
+}
+
+Tile_Type game_get_top_tile(ivec2 index)
+{
+	Map_Tile *tile;
+
+	tile = game_get_maptile(index);
+	if (!tile)
+	{
+		log_warning("Getting top of tile (%d, %d) which is outside the map\n", index.x, index.y);
+		return TILE_NONE;
+	}
+
+	if (tile->foreground != TILE_NONE) return tile->foreground;
+
+	return tile->background;
+}
+
+Tile_Type game_get_top_tile_from_maptile(Map_Tile *tile)
+{
+	if (tile->foreground != TILE_NONE) return tile->foreground;
+	return tile->background;
+}
+
+int game_add_ground_item(Ground_Item *item)
+{
+	if (game.ground_item_count >= GAME_MAX_GROUND_ITEM_COUNT)
+	{
+		log_warning("Trying to add ground item, but there's no space");
+		return 0;
+	}
+	
+	// Find the next available slot
+	
+	for (int i = 0; i < GAME_MAX_GROUND_ITEM_COUNT; i++)
+	{
+		Ground_Item *current_item;
+
+		current_item = &game.ground_items[game.ground_item_index + i];
+
+		if (current_item->stack.type == ITEM_NONE || current_item->stack.count == 0)
+		{
+			*current_item = *item;
+			game.ground_item_index += i;
+			game.ground_item_count++;
+			return 1;
+		}
+	}
+
+	log_error("Couldn't find a free slot for ground item even though there should be space");
+	return 0;
+}
+
+Drop_Stack game_droptable(Droptable_Type type)
+{
+	Drop_Stack drop;
+	
+	switch(type)
+	{
+		case DROPTABLE_NONE:
+			drop.stack_count = 0;
+		break;
+
+		case DROPTABLE_TREE:
+			drop.stack_count = 1;
+			drop.stacks[0].type = ITEM_WOOD;
+			drop.stacks[0].count = 5;
+		break;
+		
+		case DROPTABLE_STONE:
+			drop.stack_count = 1;
+			drop.stacks[0].type = ITEM_STONE;
+			drop.stacks[0].count = 3;
+		break;
+
+		default:
+			log_warning("Trying to roll droptable %d which doesn't exist\n", type);
+		break;
+	}
+
+	return drop;
 }

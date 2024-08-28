@@ -1,7 +1,5 @@
 #include "game.h"
 
-#include <stdio.h>
-
 extern Registry reg;
 
 void registry_init()
@@ -40,17 +38,20 @@ void registry_init()
 		.sprite = gfx_texture_atlas_sprite(&reg.atlas, iv2(4, 0), iv2(1, 1))
 	};
 
-	reg.foregrounds[FOREGROUND_NONE] = (Foreground_Info){
+	reg.ground_objects[GROUND_OBJECT_NONE] = (Ground_Object_Info){
+		.droptable = DROPTABLE_NONE,
 		.sprite = gfx_texture_atlas_sprite(&reg.atlas, iv2(0, 0), iv2(1, 1)),
 		.size = v2(1.0f, 1.0f)
 	};
 
-	reg.foregrounds[FOREGROUND_TREE] = (Foreground_Info){
+	reg.ground_objects[GROUND_OBJECT_TREE] = (Ground_Object_Info){
+		.droptable = DROPTABLE_TREE,
 		.sprite = gfx_texture_atlas_sprite(&reg.atlas, iv2(0, 1), iv2(1, 2)),
 		.size = v2(1.0f, 2.0f)
 	};
 
-	reg.foregrounds[FOREGROUND_ROCK] = (Foreground_Info){
+	reg.ground_objects[GROUND_OBJECT_ROCK] = (Ground_Object_Info){
+		.droptable = DROPTABLE_STONE,
 		.sprite = gfx_texture_atlas_sprite(&reg.atlas, iv2(1, 1), iv2(1, 1)),
 		.size = v2(1.0f, 1.0f)
 	};
@@ -82,5 +83,23 @@ void registry_init()
 
 	reg.ui_hotbar_sprite = gfx_texture_atlas_sprite(&reg.atlas, iv2(3, 1), iv2(1, 1));
 	reg.ui_hotbar_active_sprite = gfx_texture_atlas_sprite(&reg.atlas, iv2(3, 2), iv2(1, 1));
+};
 
+void registry_shutdown()
+{
+}
+
+Tile_Info* TILE_INFO(Tile_Type type)
+{
+	return &reg.tiles[type];
+}
+
+Ground_Object_Info* GROUND_OBJECT_INFO(Ground_Object_Type type)
+{
+	return &reg.ground_objects[type];
+}
+
+Item_Info* ITEM_INFO(Item_Type type)
+{
+	return &reg.items[type];
 }
