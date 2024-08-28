@@ -1,0 +1,10 @@
+-Iinclude/all
+-Ivendor
+-Isrc
+-Llib/gcc
+-lglfw3
+-lGL
+-lm
+-D GLFW_INCLUDE_NONE
+-std=c11
+-o build/game.o

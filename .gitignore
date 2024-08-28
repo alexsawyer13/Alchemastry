@@ -2,4 +2,5 @@
 .vscode
 x64
 x86
-Alchemastry
+build
+build.o

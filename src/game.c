@@ -189,7 +189,7 @@ void game_update()
 	if (platform_key_down(GLFW_KEY_A))
 		player_direction.x -= 1.0f;
 	
-	if (player_direction.x != 0.0f && player_direction.y != 0.0f);
+	if (player_direction.x != 0.0f || player_direction.y != 0.0f)
 		game.position = vec2_add_vec2(game.position, vec2_mul_float(vec2_normalise(player_direction), game.speed * reg.tiles[game.map.tiles[player_tile_index].type].speed_multiplier * platform_delta_time()));
 
 	// Click
