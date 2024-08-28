@@ -180,5 +180,9 @@ int main()
 	printf("Compile command: %s\n\n", cmd);
 	system(cmd);
 
+	// Run game
+	
+	system("build/game.o");
+
 	return 0;
 }

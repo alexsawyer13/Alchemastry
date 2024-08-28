@@ -54,7 +54,7 @@ typedef enum
 
 typedef struct
 {
-	Tile_Type 			type;
+	Tile_Type 		type;
 	Foreground_Type 	foreground;
 } Tile;
 
@@ -75,7 +75,7 @@ typedef enum
 
 typedef struct
 {
-	int		max_stack;
+	int	max_stack;
 
 	Sprite	sprite;
 } Item_Info;

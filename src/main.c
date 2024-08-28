@@ -1,12 +1,14 @@
 #include "platform.h"
 #include "gfx.h"
 #include "game.h"
+#include "log.h"
 
 int main()
 {
-	if (!platform_init()) return 1;
-	if (!gfx_init()) return 1;
-	if (!game_init()) return 1;
+	if (!platform_init()) return -1;
+	if (!gfx_init()) return -1;
+	if (!game_init()) return -1;
+	if (!log_init(LOG_LEVEL_DEBUG)) return -1;
 
 	while (!platform_window_closed())
 	{
@@ -19,6 +21,7 @@ int main()
 		platform_update();
 	}
 
+	log_shutdown();
 	game_shutdown();
 	gfx_shutdown();
 	platform_shutdown();

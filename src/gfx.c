@@ -1,5 +1,6 @@
 #include "gfx.h"
 #include "platform.h"
+#include "log.h"
 
 #include <glad/glad.h>
 #include <stb/stb_image.h>
@@ -60,15 +61,15 @@ int gfx_init()
 	// Load colour shader
 	if (!gfx_shader_create_from_file(&gfx.colour_shader, "assets/shaders/colour.vert", "assets/shaders/colour.frag"))
 	{
-		fprintf(stderr, "Failed to create colour shader\n");
+		log_fatal("Failed to create colour shader\n");
 		return 0;
 	}
 
 	// Generate and load texture shader
-	printf("WARNING ONLY USING 16 TEXTURE UNITS WHEN MORE MIGHT BE AVAILABLE\n");
+	log_warning("WARNING ONLY USING 16 TEXTURE UNITS WHEN MORE MIGHT BE AVAILABLE\n");
 	if (!gfx_shader_create_from_source(&gfx.texture_shader, texture_shader_vertex_source, texture_shader_fragment_source))
 	{
-		fprintf(stderr, "Failed to create texture shader\n");
+		log_fatal("Failed to create texture shader\n");
 		return 0;
 	}
 
@@ -94,7 +95,7 @@ int gfx_init()
 
 	if (!gfx.colour_quad_buffer)
 	{
-		fprintf(stderr, "Failed to allocate memory for quad buffer\n");
+		log_fatal("Failed to allocate memory for quad buffer\n");
 		return 0;
 	}
 
@@ -103,7 +104,7 @@ int gfx_init()
 	indices = malloc(GFX_MAX_COLOUR_QUADS * 6 * sizeof(unsigned int));
 	if (!indices)
 	{
-		fprintf(stderr, "Failed to allocate memory for colour quad indices");
+		log_fatal("Failed to allocate memory for colour quad indices");
 		return 0;
 	}
 
@@ -149,7 +150,7 @@ int gfx_init()
 
 	if (!gfx.sprite_quad_buffer)
 	{
-		fprintf(stderr, "Failed to allocate memory for sprite quad buffer\n");
+		log_fatal("Failed to allocate memory for sprite quad buffer\n");
 		return 0;
 	}
 
@@ -158,7 +159,7 @@ int gfx_init()
 	indices = malloc(GFX_MAX_SPRITE_QUADS * 6 * sizeof(unsigned int));
 	if (!indices)
 	{
-		fprintf(stderr, "Failed to allocate memory for sprite quad indices");
+		log_fatal("Failed to allocate memory for sprite quad indices");
 		return 0;
 	}
 
@@ -215,9 +216,8 @@ void gfx_shutdown()
 
 void gfx_print_platform_info()
 {
-	printf("Graphics platform info:\n");
-	printf("Maximum texture units: %d\n", gfx.info.max_texture_units);
-	printf("\n");
+	log_info("Graphics platform info:\n");
+	log_info("\tMaximum texture units: %d\n", gfx.info.max_texture_units);
 }
 
 void gfx_mesh_destroy(Mesh *mesh)
@@ -335,10 +335,10 @@ int gfx_shader_create_from_source(Shader *out_shader, const char *vertex_source,
 	glGetShaderiv(vert, GL_COMPILE_STATUS, &success);
 	if (!success)
 	{
-		fprintf(stderr, "Failed to compile vertex shader \n%s\n", vertex_source);
+		log_fatal("Failed to compile vertex shader \n%s\n", vertex_source);
 		glDeleteShader(vert);
 		glGetShaderInfoLog(vert, 1024, NULL, info_log);
-		fprintf(stderr, "%s\n", info_log);
+		log_fatal("%s\n", info_log);
 		return 0;
 	}
 
@@ -349,11 +349,11 @@ int gfx_shader_create_from_source(Shader *out_shader, const char *vertex_source,
 	glGetShaderiv(frag, GL_COMPILE_STATUS, &success);
 	if (!success)
 	{
-		fprintf(stderr, "Failed to compile fragment shader \n%s\n", fragment_source);
+		log_fatal("Failed to compile fragment shader \n%s\n", fragment_source);
 		glDeleteShader(vert);
 		glDeleteShader(frag);
 		glGetShaderInfoLog(frag, 1024, NULL, info_log);
-		fprintf(stderr, "%s\n", info_log);
+		log_fatal("%s\n", info_log);
 		return 0;
 	}
 
@@ -365,12 +365,12 @@ int gfx_shader_create_from_source(Shader *out_shader, const char *vertex_source,
 	glGetProgramiv(prog, GL_LINK_STATUS, &success);
 	if (!success)
 	{
-		fprintf(stderr, "Failed to link program \n%s\n%s\n", vertex_source, fragment_source);
+		log_fatal("Failed to link program \n%s\n%s\n", vertex_source, fragment_source);
 		glDeleteProgram(prog);
 		glDeleteShader(vert);
 		glDeleteShader(frag);
 		glGetProgramInfoLog(prog, 1024, NULL, info_log);
-		fprintf(stderr, "%s\n", info_log);
+		log_fatal("%s\n", info_log);
 		return 0;
 	}
 
@@ -414,7 +414,7 @@ void gfx_shader_uniform_mat4(Shader *shader, mat4 mat, const char *uniform_name)
 	location = glGetUniformLocation(shader->id, uniform_name);
 	if (location == -1)
 	{
-		fprintf(stderr, "Uniform %s cannot be found\n", uniform_name);
+		log_error("Uniform %s cannot be found\n", uniform_name);
 		return;
 	}
 
@@ -513,7 +513,7 @@ void gfx_flush_sprite_quads()
 		// Otherwise put it away
 		else
 		{
-			fprintf(stderr, "CANNOT YET RENDER MORE THAN 16 TEXTURES AT ONCE\n");
+			log_warning("CANNOT YET RENDER MORE THAN 16 TEXTURES AT ONCE\n");
 		}
 
 	}
@@ -549,7 +549,7 @@ int	gfx_texture_create(Texture *out_texture, const char *texture_path)
 
 	if (!buffer)
 	{
-		fprintf(stderr, "Failed to load texture %s\n", texture_path);
+		log_error("Failed to load texture %s\n", texture_path);
 		return 0;
 	}
 
@@ -573,7 +573,7 @@ int	gfx_texture_create(Texture *out_texture, const char *texture_path)
 		break;
 
 		default:
-			fprintf(stderr, "UNKNOWN IMAGE FORMAT WITH %d CHANNELS\n", channels);
+			log_error("UNKNOWN IMAGE FORMAT WITH %d CHANNELS IN TEXTURE %s\n", channels, texture_path);
 			return 0;
 		break;
 	}
@@ -595,7 +595,7 @@ void gfx_shader_uniform_int(Shader *shader, int value, const char *uniform_name)
 	location = glGetUniformLocation(shader->id, uniform_name);
 	if (location == -1)
 	{
-		fprintf(stderr, "Uniform %s cannot be found\n", uniform_name);
+		log_error("Uniform %s cannot be found\n", uniform_name);
 		return;
 	}
 
@@ -608,10 +608,10 @@ void gfx_opengl_error_callback(unsigned int source, unsigned int type, unsigned 
 	switch (type)
 	{
 		case GL_DEBUG_TYPE_ERROR:
-			fprintf(stderr, "** GL ERROR **: %s\n", message);
+			log_error("OpenGL error message: %s\n", message);
 			break;
 		case GL_DEBUG_TYPE_PERFORMANCE:
-			printf("** GL PERFORMANCE **: %s\n", message);
+			log_info("OpenGL performance message: %s\n", message);
 			break;
 		default:
 			break;
