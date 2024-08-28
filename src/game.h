@@ -80,13 +80,24 @@ typedef enum
 	ITEM_WOOD,
 	ITEM_STONE,
 	ITEM_ELISHA,
+	ITEM_PATH,
 
 	ITEM_COUNT
 } Item_Type;
 
+typedef enum
+{
+	PLACEABLE_NOT,
+	PLACEABLE_FOREGROUND,
+	PLACEABLE_GROUND_OBJECT
+} Placeable_Type;
+
 typedef struct
 {
 	int	max_stack;
+	
+	Placeable_Type	placeable : 2;
+	int		place_type;
 
 	Sprite	sprite;
 } Item_Info;
@@ -144,6 +155,7 @@ typedef struct
 
 	vec2		position;
 	float		speed;
+	float		reach;
 
 	Item_Stack	inventory[36];
 	Item_Stack	inventory_hand;
@@ -174,10 +186,13 @@ void		game_ui_render_number(vec2 position, float number_size, int number);
 
 int		game_add_ground_item(Ground_Item *item);
 
-Map_Tile*	game_get_maptile(ivec2 index);
+Map_Tile	*game_get_maptile(ivec2 index);
 Tile_Type	game_get_top_tile(ivec2 index);
-
 Tile_Type	game_get_top_tile_from_maptile(Map_Tile *tile);
+
+Item_Stack	*game_get_handitem();
+
+int		game_place_item(ivec2 tile_pos, Item_Type type);
 
 Drop_Stack	game_droptable(Droptable_Type type);
 

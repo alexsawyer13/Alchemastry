@@ -15,6 +15,7 @@ int game_init()
 
 	game.position = v2(128.0f, 128.0f);
 	game.speed = 5.0f;
+	game.reach = 5.0f;
 
 	game.current_ui = GAME_UI_NONE;
 
@@ -46,6 +47,9 @@ int game_init()
 
 	game.inventory[1].type = ITEM_STONE;
 	game.inventory[1].count = 15;
+	
+	game.inventory[2].type = ITEM_PATH;
+	game.inventory[2].count = 999;
 
 	game.inventory[8].type = ITEM_ELISHA;
 	game.inventory[8].count = 1;
@@ -132,7 +136,7 @@ void game_update()
 		platform_window_close();
 	}
 
-	// UI switching
+	// UI
 
 	if (platform_key_pressed(GLFW_KEY_E))
  	{
@@ -223,23 +227,39 @@ void game_update()
 				game_add_ground_item(&item);
 			}
 		}
+
+		else if (mouse_tile->foreground != TILE_NONE)
+		{
+			mouse_tile->foreground = TILE_NONE;
+		}
 	}
 
 	if (platform_mouse_down(GLFW_MOUSE_BUTTON_RIGHT))
 	{
-		Map_Tile *mouse_tile;
+		Item_Stack *hand;
 
-		mouse_tile = game_get_maptile(game.mouse_tile);
-		mouse_tile->foreground = TILE_PATH;
+		hand = game_get_handitem();
+
+		if (hand->count > 0)
+		{
+			if (game_place_item(game.mouse_tile, hand->type))
+			{
+				hand->count--;
+			}
+		}
+
 	}
 }
 
 void game_render()
 {
+	ivec2	player_tile;
+
 	gfx_set_projection(GFX_BUILTIN_SHADER_TEXTURE, mat4_world_to_ndc_projection(settings.zoom));
 	gfx_set_projection(GFX_BUILTIN_SHADER_COLOUR, mat4_world_to_ndc_projection(settings.zoom));
 	
 	// Render world
+	player_tile = vec2_round_ivec2(game.position);
 
 	//  Tiles
 	for (int y = MAP_SIZE_X-1; y >= 0; y--)
@@ -262,11 +282,7 @@ void game_render()
 				gfx_flush_sprite_quads();
 				gfx_draw_quad(gfx_quad_colour_bl(from_player, v2(1.0f, 1.0f), v4(0.7f, 0.7f, 0.7f, 0.2f)));
 				gfx_flush_colour_quads();
-				log_debug("(%f, %f)\n", from_player.x, from_player.y);
 			}
-
-			
-			//log_debug("(%f, %f)\n", from_player.x, from_player.y);
 		}
 	}
 
@@ -280,7 +296,7 @@ void game_render()
 			gfx_draw_quad(gfx_quad_tex_bl(vec2_sub_vec2(vec2_add_vec2(item->position, v2(0.1f, 0.1f)), game.position), v2(0.8f, 0.8f), ITEM_INFO(item->stack.type)->sprite));
 	}
 
-	// Foreground elements
+	// Ground objects (and player for proper layering
 
 	for (int y = MAP_SIZE_X-1; y >= 0; y--)
 	{
@@ -298,11 +314,12 @@ void game_render()
 			if (tile->ground_object != GROUND_OBJECT_NONE)
 				gfx_draw_quad(gfx_quad_tex_bl(from_player, info->size, info->sprite));
 		}
-	}
 
-	// Player
-	
-	gfx_draw_quad(gfx_quad_tex_centred(v2(0.0f, 0.0f), v2(0.8, 1.6f), reg.player_sprite));
+		if (y == player_tile.y)
+		{
+			gfx_draw_quad(gfx_quad_tex_centred(v2(0.0f, 0.0f), v2(0.8, 1.6f), reg.player_sprite));
+		}
+	}
 
 	// Render UI
 
@@ -471,4 +488,51 @@ Drop_Stack game_droptable(Droptable_Type type)
 	}
 
 	return drop;
+}
+
+Item_Stack *game_get_handitem()
+{
+	return &game.inventory[game.current_hotbar_slot];
+}
+
+int game_place_item(ivec2 tile_pos, Item_Type type)
+{
+	Item_Info *info;
+	Map_Tile  *tile;
+
+	info = ITEM_INFO(type);
+	tile = game_get_maptile(tile_pos);
+	
+	if (!tile)
+		return 0;
+
+	if (info->placeable == PLACEABLE_NOT)
+		return 0;
+
+	switch(info->placeable)
+	{
+		case PLACEABLE_FOREGROUND:
+			if (tile->foreground != TILE_NONE)
+				return 0;
+			tile->foreground = (Tile_Type) info->place_type;
+		break;
+
+		case PLACEABLE_GROUND_OBJECT:
+			if (tile->ground_object != GROUND_OBJECT_NONE)
+				return 0;
+			tile->ground_object = (Ground_Object_Type) info->place_type;
+		break;
+
+		case PLACEABLE_NOT:
+			log_warning("Trying to place an item which isn't placeable\n");
+			return 0;
+		break;
+
+		default:
+			log_warning("Trying to place an item with an unknown placeable flag\n");
+			return 0;
+		break;
+	}
+
+	return 1;
 }

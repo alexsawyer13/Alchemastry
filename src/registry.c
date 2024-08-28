@@ -58,22 +58,37 @@ void registry_init()
 
 	reg.items[ITEM_NONE] = (Item_Info){
 		.max_stack = 0,
+		.placeable = PLACEABLE_NOT,
+		.place_type = 0,
 		.sprite = gfx_texture_atlas_sprite(&reg.atlas, iv2(0, 0), iv2(1, 1))
 	};
 
 	reg.items[ITEM_WOOD] = (Item_Info){
 		.max_stack = 999,
+		.placeable = PLACEABLE_NOT,
+		.place_type = 0,
 		.sprite = gfx_texture_atlas_sprite(&reg.atlas, iv2(4, 1), iv2(1, 1))
 	};
 
 	reg.items[ITEM_STONE] = (Item_Info){
 		.max_stack = 999,
+		.placeable = PLACEABLE_NOT,
+		.place_type = 0,
 		.sprite = gfx_texture_atlas_sprite(&reg.atlas, iv2(5, 1), iv2(1, 1))
 	};
 
 	reg.items[ITEM_ELISHA] = (Item_Info){
 		.max_stack = 1,
+		.placeable = PLACEABLE_NOT,
+		.place_type = 0,
 		.sprite = reg.elisha_sprite
+	};
+
+	reg.items[ITEM_PATH] = (Item_Info){
+		.max_stack = 999,
+		.placeable = PLACEABLE_FOREGROUND,
+		.place_type = TILE_PATH,
+		.sprite = gfx_texture_atlas_sprite(&reg.atlas, iv2(4, 0), iv2(1, 1))
 	};
 
 	for (int i = 0; i < 10; i++)
