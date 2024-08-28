@@ -1,4 +1,5 @@
 #include "platform.h"
+#include "log.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,7 +14,7 @@ int platform_init()
 {
 	if (glfwInit() == GLFW_FALSE)
 	{
-		fprintf(stderr, "Failed to initialise GLFW\n");
+		log_fatal("Failed to initialise GLFW\n");
 		return 0;
 	}
 	
@@ -22,7 +23,7 @@ int platform_init()
 
 	if (!platform.window)
 	{
-		fprintf(stderr, "Failed to create GLFW window\n");
+		log_fatal("Failed to create GLFW window\n");
 		return 0;
 	}
 
@@ -46,6 +47,7 @@ int platform_init()
 	glfwSwapInterval(1);
 
 	platform.current_time = glfwGetTime();
+	platform.frame_count = 0;
 
 	srand(time(0));
 
@@ -102,8 +104,13 @@ void platform_update()
 	platform.delta_time = (float)(current_time - platform.current_time);
 	platform.current_time = current_time;
 
-	sprintf(window_title, "Alchemastry - %d FPS", (int)roundf(1.0f / platform.delta_time));
-	glfwSetWindowTitle(platform.window, window_title);
+	if (platform.frame_count % 30 == 0)
+	{
+		sprintf(window_title, "Alchemastry - %d FPS", (int)roundf(1.0f / platform.delta_time));
+		glfwSetWindowTitle(platform.window, window_title);
+	}
+
+	platform.frame_count++;
 }
 
 GLADloadproc platform_get_gladloadproc()
@@ -121,7 +128,7 @@ int platform_read_file_alloc(const char *path, char **out_buffer, size_t *out_le
 	file = fopen(path, "r");
 	if (!file)
 	{
-		fprintf(stderr, "Failed to open file %s with error code %d: %s\n", path, errno, strerror(errno));
+		log_error("Failed to open file %s with error code %d: %s\n", path, errno, strerror(errno));
 		return 0;
 	}
 
@@ -131,7 +138,7 @@ int platform_read_file_alloc(const char *path, char **out_buffer, size_t *out_le
 
 	if (length == 0)
 	{
-		fprintf(stderr, "Trying to read file %s but it's empty\n", path);
+		log_error("Trying to read file %s but it's empty\n", path);
 		fclose(file);
 		return 0;
 	}
@@ -139,7 +146,7 @@ int platform_read_file_alloc(const char *path, char **out_buffer, size_t *out_le
 	buffer = malloc(length + 1);
 	if (!buffer)
 	{
-		fprintf(stderr, "Failed to allocate buffer for file %s\n", path);
+		log_error("Failed to allocate buffer for file %s\n", path);
 		fclose(file);
 		return 0;
 	}
@@ -149,14 +156,14 @@ int platform_read_file_alloc(const char *path, char **out_buffer, size_t *out_le
 	{
 		if (ferror(file))
 		{
-			fprintf(stderr, "Failed to read file %s\n", path);
+			log_error("Failed to read file %s\n", path);
 			fclose(file);
 			return 0;
 		}
 	}
 	if (output > length)
 	{
-		fprintf(stderr, "Read more characters from file %s than allocated\n", path);
+		log_error("Read more characters from file %s than allocated\n", path);
 		fclose(file);
 		return 0;
 	}

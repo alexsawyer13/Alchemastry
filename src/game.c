@@ -2,8 +2,6 @@
 #include "gfx.h"
 #include "platform.h"
 
-#include <stdio.h>
-
 Game 		game;
 Settings 	settings;
 Registry 	reg;

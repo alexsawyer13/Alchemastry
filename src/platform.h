@@ -15,13 +15,14 @@ typedef enum
 
 typedef struct
 {
-	GLFWwindow			*window;
+	GLFWwindow		*window;
 
-	ivec2				viewport;
-	int					viewport_changed;
+	ivec2			viewport;
+	int			viewport_changed;
 
-	double				current_time;
-	float				delta_time;
+	double			current_time;
+	float			delta_time;
+	int			frame_count;
 
 	Platform_Keystate 	keys[GLFW_KEY_LAST];
 	Platform_Keystate	mouse[GLFW_MOUSE_BUTTON_LAST];
@@ -38,13 +39,13 @@ void	platform_window_close();
 void 	_platform_key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void	_platform_mouse_button_callback(GLFWwindow *window, int button, int action, int mods);
 
-int		platform_key_down(int keycode);
-int		platform_key_pressed(int keycode);
-int		platform_key_released(int keycode);
+int	platform_key_down(int keycode);
+int	platform_key_pressed(int keycode);
+int	platform_key_released(int keycode);
 
-int		platform_mouse_down(int button);
-int		platform_mouse_pressed(int button);
-int		platform_mouse_released(int button);
+int	platform_mouse_down(int button);
+int	platform_mouse_pressed(int button);
+int	platform_mouse_released(int button);
 vec2	platform_mouse_position();
 
 ivec2 	platform_get_viewport_size();
