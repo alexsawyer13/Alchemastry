@@ -180,3 +180,18 @@ ivec2 vec2_round_ivec2(vec2 vec)
 {
 	return (ivec2){(int)vec.x, (int)vec.y};
 }
+
+float vec2_length(vec2 vec)
+{
+	return sqrtf(vec.x * vec.x + vec.y * vec.y);
+}
+
+float vec2_length_sqr(vec2 vec)
+{
+	return vec.x * vec.x + vec.y * vec.y;
+}
+
+int vec2_eq_vec2(vec2 v1, vec2 v2)
+{
+	return (v1.x == v2.x && v1.y == v2.y);
+}

@@ -20,7 +20,7 @@ typedef struct
 	ivec2			viewport;
 	int			viewport_changed;
 
-	double			current_time;
+	float			current_time;
 	float			delta_time;
 	int			frame_count;
 
@@ -51,6 +51,7 @@ vec2	platform_mouse_position();
 ivec2 	platform_get_viewport_size();
 int 	platform_viewport_changed();
 
+float	platform_time();
 float	platform_delta_time();
 
 float	platform_random();

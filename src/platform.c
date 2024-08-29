@@ -73,7 +73,7 @@ int platform_window_closed()
 void platform_update()
 {
 	ivec2	new_viewport;
-	double	current_time;
+	float	current_time;
 	char	window_title[64];
 
 	for (int i = 0; i < GLFW_KEY_LAST; i++)
@@ -100,8 +100,8 @@ void platform_update()
 	platform.viewport_changed = !ivec2_eq(platform.viewport, new_viewport);
 	platform.viewport = new_viewport;
 
-	current_time = glfwGetTime();
-	platform.delta_time = (float)(current_time - platform.current_time);
+	current_time = (float)glfwGetTime();
+	platform.delta_time = current_time - platform.current_time;
 	platform.current_time = current_time;
 
 	if (platform.frame_count % 30 == 0)
@@ -205,6 +205,11 @@ int	platform_key_pressed(int keycode)
 int	platform_key_released(int keycode)
 {
 	return platform.keys[keycode] == PLATFORM_KEY_RELEASED;
+}
+
+float	platform_time()
+{
+	return platform.current_time;
 }
 
 float platform_delta_time()

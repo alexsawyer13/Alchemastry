@@ -104,9 +104,12 @@ vec4			v4(float x, float y, float z, float w);
 
 vec2			vec2_add_vec2(vec2 v1, vec2 v2);
 vec2			vec2_sub_vec2(vec2 v1, vec2 v2);
+int			vec2_eq_vec2(vec2 v1, vec2 v2);
 vec2			vec2_mul_float(vec2 vec, float f);
 vec2			vec2_reciprocal(vec2 vec);
 vec2			vec2_normalise(vec2 vec);
+float			vec2_length(vec2 vec);
+float			vec2_length_sqr(vec2 vec);
 
 ivec2			iv2(int x, int y);
 int			ivec2_eq(ivec2 v1, ivec2 v2);

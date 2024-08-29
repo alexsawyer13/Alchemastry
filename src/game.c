@@ -3,6 +3,8 @@
 #include "platform.h"
 #include "log.h"
 
+#include <math.h>
+
 Game 		game;
 Settings 	settings;
 Registry 	reg;
@@ -15,7 +17,7 @@ int game_init()
 
 	game.position = v2(128.0f, 128.0f);
 	game.speed = 5.0f;
-	game.reach = 5.0f;
+	game.reach = 3.5f;
 
 	game.current_ui = GAME_UI_NONE;
 
@@ -51,8 +53,8 @@ int game_init()
 	game.inventory[2].type = ITEM_PATH;
 	game.inventory[2].count = 999;
 
-	game.inventory[8].type = ITEM_ELISHA;
-	game.inventory[8].count = 1;
+	game.inventory[35].type = ITEM_ELISHA;
+	game.inventory[35].count = 1;
 
 	// Generate map
 
@@ -106,6 +108,8 @@ void game_update()
 	vec2 	mouse_position;
 	ivec2 	screen_size;
 	ivec2	mouse_inventory_slot;
+
+	int	ground_items_updated;
 
 	// Get mouse position in world and UI
 
@@ -179,24 +183,6 @@ void game_update()
 		}
 	}
 
-	// Player movement
-
-	player_tile_position = vec2_round_ivec2(game.position);
-	player_tile_index = player_tile_position.y * MAP_SIZE_X + player_tile_position.x;
-
-	player_direction = v2(0.0f, 0.0f);	
-
-	if (platform_key_down(GLFW_KEY_W))
-		player_direction.y += 1.0f;
-	if (platform_key_down(GLFW_KEY_S))
-		player_direction.y -= 1.0f;
-	if (platform_key_down(GLFW_KEY_D))
-		player_direction.x += 1.0f;
-	if (platform_key_down(GLFW_KEY_A))
-		player_direction.x -= 1.0f;
-	
-	if (player_direction.x != 0.0f || player_direction.y != 0.0f)
-		game.position = vec2_add_vec2(game.position, vec2_mul_float(vec2_normalise(player_direction), game.speed * TILE_INFO(game_get_top_tile(player_tile_position))->speed_multiplier * platform_delta_time()));
 
 	// Click
 
@@ -223,6 +209,7 @@ void game_update()
 
 				item.position = v2((float)(game.mouse_tile.x), (float)(game.mouse_tile.y));
 				item.stack = drop.stacks[i];
+				item.player_detection_time = 0.0f;
 
 				game_add_ground_item(&item);
 			}
@@ -248,6 +235,83 @@ void game_update()
 			}
 		}
 
+	}
+
+	// Player movement
+
+	player_tile_position = vec2_round_ivec2(game.position);
+	player_tile_index = player_tile_position.y * MAP_SIZE_X + player_tile_position.x;
+
+	player_direction = v2(0.0f, 0.0f);	
+
+	if (platform_key_down(GLFW_KEY_W))
+		player_direction.y += 1.0f;
+	if (platform_key_down(GLFW_KEY_S))
+		player_direction.y -= 1.0f;
+	if (platform_key_down(GLFW_KEY_D))
+		player_direction.x += 1.0f;
+	if (platform_key_down(GLFW_KEY_A))
+		player_direction.x -= 1.0f;
+	
+	if (player_direction.x != 0.0f || player_direction.y != 0.0f)
+		game.position = vec2_add_vec2(game.position, vec2_mul_float(vec2_normalise(player_direction), game.speed * TILE_INFO(game_get_top_tile(player_tile_position))->speed_multiplier * platform_delta_time()));
+
+	// Update ground items
+	
+	ground_items_updated = 0;
+	for (int i = 0; i < GAME_MAX_GROUND_ITEM_COUNT; i++)
+	{
+		Ground_Item	*item;
+		vec2		to_player;
+		float		dist_to_player_sqr;
+
+		item = &game.ground_items[i];
+		if (item->stack.count == 0 || item->stack.type == ITEM_NONE)
+			continue;
+
+		to_player = vec2_sub_vec2(game.position, item->position);
+		dist_to_player_sqr = vec2_length_sqr(to_player);
+
+		if (item->player_detection_time == 0.0f && dist_to_player_sqr <= game.reach * game.reach)
+		{
+			item->player_detection_time = platform_time();
+		}
+
+		if (item->player_detection_time != 0.0f)
+		{
+			float time_to_reach_player;
+			float speed_to_reach_player;
+
+			time_to_reach_player = item->player_detection_time + GAME_GROUND_ITEM_SPEED - platform_time();
+
+			if (time_to_reach_player <= 0.05)
+			{
+				item->position = game.position;
+			}
+			else
+			{
+				speed_to_reach_player = sqrtf(dist_to_player_sqr) / time_to_reach_player;
+
+				item->position = vec2_add_vec2(item->position, vec2_mul_float(vec2_normalise(to_player), speed_to_reach_player * platform_delta_time()));
+			}
+		}
+
+		if (vec2_eq_vec2(item->position, game.position))
+		{
+			Item_Stack leftover;
+
+			if (game_add_to_inventory(item->stack, &leftover))
+			{
+				log_debug("Added %d of item %d to inventory\n", item->stack.count, item->stack.type);
+				item->stack = (Item_Stack) {.type = ITEM_NONE, .count = 0};
+				item->position = v2(0.0f, 0.0f);
+				item->player_detection_time = 0.0f;
+			}
+			else
+			{
+				item->stack = leftover;
+			}
+		}
 	}
 }
 
@@ -296,7 +360,7 @@ void game_render()
 			gfx_draw_quad(gfx_quad_tex_bl(vec2_sub_vec2(vec2_add_vec2(item->position, v2(0.1f, 0.1f)), game.position), v2(0.8f, 0.8f), ITEM_INFO(item->stack.type)->sprite));
 	}
 
-	// Ground objects (and player for proper layering
+	// Ground objects (and player for proper layering)
 
 	for (int y = MAP_SIZE_X-1; y >= 0; y--)
 	{
@@ -536,3 +600,53 @@ int game_place_item(ivec2 tile_pos, Item_Type type)
 
 	return 1;
 }
+
+int game_add_to_inventory(Item_Stack stack, Item_Stack *out_leftover)
+{
+	Item_Stack *empty_stack;
+
+	out_leftover->type = ITEM_NONE;
+	out_leftover->count = 0;
+	empty_stack = NULL;
+
+	for (int i = 0; i < 36; i++)
+	{
+		Item_Stack *current_stack;
+
+		current_stack = &game.inventory[i];
+
+		if (current_stack->type == stack.type)
+		{
+			int amount_can_add;
+			int amount_to_add;
+
+			amount_can_add = ITEM_INFO(current_stack->type)->max_stack - current_stack->count;
+			
+			amount_to_add = stack.count;
+			if (amount_to_add > amount_can_add)
+				amount_to_add = amount_can_add;
+
+			current_stack->count += amount_to_add;
+			stack.count -= amount_to_add;
+
+			if (stack.count <= 0)
+			{
+				return 1;
+			}
+		}
+
+		else if (current_stack->type == ITEM_NONE && !empty_stack)
+			empty_stack = current_stack;
+	}
+
+	if (empty_stack)
+	{
+		*empty_stack = stack;
+		return 1;
+	}
+
+	*out_leftover = stack;
+
+	return 0;
+}
+

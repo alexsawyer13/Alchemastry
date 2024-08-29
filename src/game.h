@@ -21,6 +21,8 @@
 #define GAME_MAX_GROUND_ITEM_COUNT 1024
 #define DROP_MAX_ITEMSTACKS 16
 
+#define GAME_GROUND_ITEM_SPEED 0.3f
+
 typedef enum
 {
 	DROPTABLE_NONE,
@@ -118,6 +120,8 @@ typedef struct
 {
 	vec2		position;
 	Item_Stack	stack;
+
+	float		player_detection_time;
 } Ground_Item;
 
 typedef enum
@@ -191,6 +195,7 @@ Tile_Type	game_get_top_tile(ivec2 index);
 Tile_Type	game_get_top_tile_from_maptile(Map_Tile *tile);
 
 Item_Stack	*game_get_handitem();
+int		game_add_to_inventory(Item_Stack stack, Item_Stack *out_leftover);
 
 int		game_place_item(ivec2 tile_pos, Item_Type type);
 
