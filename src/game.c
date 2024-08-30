@@ -16,7 +16,7 @@ int game_init()
 	settings.zoom = 12.0f;
 
 	game.position = v2(128.0f, 128.0f);
-	game.speed = 5.0f;
+	game.speed = 6.5f;
 	game.reach = 3.5f;
 
 	game.current_ui = GAME_UI_NONE;
@@ -138,6 +138,7 @@ void game_update()
 	if (platform_key_down(GLFW_KEY_ESCAPE))
 	{
 		platform_window_close();
+		return;
 	}
 
 	// UI
@@ -207,7 +208,7 @@ void game_update()
 			{
 				Ground_Item item;
 
-				item.position = v2((float)(game.mouse_tile.x), (float)(game.mouse_tile.y));
+				item.position = vec2_from_ivec2(game.mouse_tile);
 				item.stack = drop.stacks[i];
 				item.player_detection_time = 0.0f;
 
@@ -331,11 +332,13 @@ void game_render()
 		for (int x = 0; x < MAP_SIZE_X; x++)
 		{
 			Map_Tile *tile;
-			vec2 from_player;
+			vec2	  from_player;
+			ivec2	  tile_position;
 
+			tile_position = iv2(x, y);
 			tile = game_get_maptile(iv2(x, y ));
 
-			from_player = vec2_sub_vec2(v2((float)x, (float)y), game.position);
+			from_player = vec2_sub_vec2(vec2_from_ivec2(tile_position), game.position);
 
 			gfx_draw_quad(gfx_quad_tex_bl(from_player, v2(1.0f, 1.0f), TILE_INFO(game_get_top_tile_from_maptile(tile))->sprite));
 
@@ -378,6 +381,8 @@ void game_render()
 			if (tile->ground_object != GROUND_OBJECT_NONE)
 				gfx_draw_quad(gfx_quad_tex_bl(from_player, info->size, info->sprite));
 		}
+
+		// Player
 
 		if (y == player_tile.y)
 		{
@@ -439,8 +444,8 @@ void game_render()
 
 		if (game.inventory_hand.count > 0 && game.inventory_hand.type != ITEM_NONE)
 		{
-			gfx_draw_quad(gfx_quad_tex_centred(game.mouse_position_ui, v2(UI_INVENTORY_ITEM_SIZE, UI_INVENTORY_ITEM_SIZE), reg.items[game.inventory_hand.type].sprite));                           
-			// game_ui_render_number(vec2_add_vec2(game.mouse_position_ui, v2(UI_INVENTORY_ITEM_TEXT_OFFSET_X, UI_INVENTORY_ITEM_TEXT_OFFSET_Y)), UI_INVENTORY_ITEM_TEXT_SIZE, game.inventory_hand.count);
+			gfx_draw_quad(gfx_quad_tex_centred(game.mouse_position_ui, v2(UI_INVENTORY_ITEM_SIZE, UI_INVENTORY_ITEM_SIZE), reg.items[game.inventory_hand.type].sprite));
+			game_ui_render_number(vec2_add_vec2(game.mouse_position_ui, v2(UI_INVENTORY_ITEM_TEXT_OFFSET_X, UI_INVENTORY_ITEM_TEXT_OFFSET_Y)), UI_INVENTORY_ITEM_TEXT_SIZE, game.inventory_hand.count);
 		}
 	}
 }

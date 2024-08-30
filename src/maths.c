@@ -195,3 +195,8 @@ int vec2_eq_vec2(vec2 v1, vec2 v2)
 {
 	return (v1.x == v2.x && v1.y == v2.y);
 }
+
+vec2 vec2_from_ivec2(ivec2 vec)
+{
+	return (vec2){(float)vec.x, (float)vec.y};
+}

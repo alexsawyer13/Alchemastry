@@ -110,6 +110,7 @@ vec2			vec2_reciprocal(vec2 vec);
 vec2			vec2_normalise(vec2 vec);
 float			vec2_length(vec2 vec);
 float			vec2_length_sqr(vec2 vec);
+vec2			vec2_from_ivec2(ivec2 vec);
 
 ivec2			iv2(int x, int y);
 int			ivec2_eq(ivec2 v1, ivec2 v2);
