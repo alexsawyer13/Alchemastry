@@ -1,7 +1,7 @@
 #ifndef _PLATFORM_H_
 #define _PLATFORM_H_
 
-#include "maths.h"
+#include "core/maths.h"
 
 #include <GLFW/glfw3.h>
 

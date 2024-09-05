@@ -1,8 +1,8 @@
 #ifndef _GAME_H_
 #define _GAME_H_
 
-#include "maths.h"
-#include "gfx.h"
+#include "core/maths.h"
+#include "gfx/gfx.h"
 
 #define MAP_SIZE_X 256
 #define MAP_SIZE_A 65536
@@ -30,12 +30,6 @@ typedef enum
 	DROPTABLE_STONE,
 } Droptable_Type;
 
-typedef struct
-{
-	Sprite 	sprite;
-	float 	speed_multiplier;
-} Tile_Info;
-
 typedef enum
 {
 	TILE_NONE,
@@ -47,14 +41,6 @@ typedef enum
 	TILE_COUNT
 } Tile_Type;
 
-typedef struct
-{
-	Droptable_Type	droptable;
-
-	Sprite		sprite;
-	vec2		size;
-} Ground_Object_Info;
-
 typedef enum
 {
 	GROUND_OBJECT_NONE,
@@ -63,18 +49,6 @@ typedef enum
 
 	GROUND_OBJECT_COUNT
 } Ground_Object_Type;
-
-typedef struct
-{
-	Tile_Type 		background;
-	Tile_Type		foreground;
-	Ground_Object_Type	ground_object;
-} Map_Tile;
-
-typedef struct
-{
-	Map_Tile 		tiles[MAP_SIZE_A];
-} Map;
 
 typedef enum
 {
@@ -94,6 +68,18 @@ typedef enum
 	PLACEABLE_GROUND_OBJECT
 } Placeable_Type;
 
+typedef enum
+{
+	GAME_UI_NONE,
+	GAME_UI_INVENTORY,
+} Ui_Panel_Type;
+
+typedef struct
+{
+	Sprite 	sprite;
+	float 	speed_multiplier;
+} Tile_Info;
+
 typedef struct
 {
 	int	max_stack;
@@ -103,6 +89,26 @@ typedef struct
 
 	Sprite	sprite;
 } Item_Info;
+
+typedef struct
+{
+	Droptable_Type	droptable;
+
+	Sprite		sprite;
+	vec2		size;
+} Ground_Object_Info;
+
+typedef struct
+{
+	Tile_Type 		background;
+	Tile_Type		foreground;
+	Ground_Object_Type	ground_object;
+} Map_Tile;
+
+typedef struct
+{
+	Map_Tile 		tiles[MAP_SIZE_A];
+} Map;
 
 typedef struct
 {
@@ -123,12 +129,6 @@ typedef struct
 
 	float		player_detection_time;
 } Ground_Item;
-
-typedef enum
-{
-	GAME_UI_NONE,
-	GAME_UI_INVENTORY,
-} Ui_Panel_Type;
 
 typedef struct
 {
@@ -155,59 +155,59 @@ typedef struct
 
 typedef struct
 {
-	Map		map;
+	Map         map;
 
-	vec2		position;
-	float		speed;
-	float		reach;
+	vec2        position;
+	float       speed;
+	float       reach;
 
-	Item_Stack	inventory[36];
-	Item_Stack	inventory_hand;
-	int		current_hotbar_slot;
+	Item_Stack  inventory[36];
+	Item_Stack  inventory_hand;
+	int         current_hotbar_slot;
 
-	Ground_Item	ground_items[GAME_MAX_GROUND_ITEM_COUNT];
-	int		ground_item_count;
-	int		ground_item_index;
+	Ground_Item ground_items[GAME_MAX_GROUND_ITEM_COUNT];
+	int         ground_item_count;
+	int         ground_item_index;
 
-	vec2		mouse_position_world;
-	vec2		mouse_position_ui;
+	vec2        mouse_position_world;
+	vec2        mouse_position_ui;
 
-	ivec2		mouse_tile;
-	int		mouse_tile_index;
-	int		mouse_inventory_index;
+	ivec2       mouse_tile;
+	int         mouse_tile_index;
+	int         mouse_inventory_index;
 
-	Ui_Panel_Type	current_ui;
+	Ui_Panel_Type current_ui;
 
 } Game;
 
-int		game_init();
-void		game_shutdown();
+int         game_init();
+void        game_shutdown();
 
-void		game_update();
-void		game_render();
+void        game_update();
+void        game_render();
 
-void		game_ui_render_number(vec2 position, float number_size, int number);
+void        game_ui_render_number(vec2 position, float number_size, int number);
 
-int		game_add_ground_item(Ground_Item *item);
+int         game_add_ground_item(Ground_Item *item);
 
-Map_Tile	*game_get_maptile(ivec2 index);
-Tile_Type	game_get_top_tile(ivec2 index);
-Tile_Type	game_get_top_tile_from_maptile(Map_Tile *tile);
+Map_Tile    *game_get_maptile(ivec2 index);
+Tile_Type   game_get_top_tile(ivec2 index);
+Tile_Type   game_get_top_tile_from_maptile(Map_Tile *tile);
 
-Item_Stack	*game_get_handitem();
-int		game_add_to_inventory(Item_Stack stack, Item_Stack *out_leftover);
+Item_Stack  *game_get_handitem();
+int         game_add_to_inventory(Item_Stack stack, Item_Stack *out_leftover);
 
-int		game_place_item(ivec2 tile_pos, Item_Type type);
+int         game_place_item(ivec2 tile_pos, Item_Type type);
 
-Drop_Stack	game_droptable(Droptable_Type type);
+Drop_Stack  game_droptable(Droptable_Type type);
 
 // ---------- REGISTRY ----------
 
-void			registry_init();
-void			registry_shutdown();
+void                    registry_init();
+void                    registry_shutdown();
 
-Tile_Info*		TILE_INFO(Tile_Type type);
-Ground_Object_Info*	GROUND_OBJECT_INFO(Ground_Object_Type type);
-Item_Info*		ITEM_INFO(Item_Type type);
+Tile_Info*              TILE_INFO(Tile_Type type);
+Ground_Object_Info*     GROUND_OBJECT_INFO(Ground_Object_Type type);
+Item_Info*              ITEM_INFO(Item_Type type);
 
 #endif

@@ -1,6 +1,7 @@
 #include "gfx.h"
-#include "platform.h"
-#include "log.h"
+
+#include "core/platform.h"
+#include "core/log.h"
 
 #include <glad/glad.h>
 #include <stb/stb_image.h>

@@ -1,7 +1,7 @@
-#include "platform.h"
-#include "gfx.h"
-#include "game.h"
-#include "log.h"
+#include "core/platform.h"
+#include "gfx/gfx.h"
+#include "game/game.h"
+#include "core/log.h"
 
 int main()
 {

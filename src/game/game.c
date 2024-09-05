@@ -1,12 +1,15 @@
 #include "game.h"
-#include "gfx.h"
-#include "platform.h"
-#include "log.h"
+
+#include "core/maths.h"
+#include "core/platform.h"
+#include "core/log.h"
+
+#include "gfx/gfx.h"
 
 #include <math.h>
 
 Game 		game;
-Settings 	settings;
+Settings	settings;
 Registry 	reg;
 
 int game_init()
@@ -101,15 +104,23 @@ void game_shutdown()
 
 void game_update()
 {
-	vec2 	player_direction;
-	ivec2 	player_tile_position;
-	int	player_tile_index;
+	vec2    player_direction;
+	ivec2   player_tile_position;
+	int     player_tile_index;
 
 	vec2 	mouse_position;
 	ivec2 	screen_size;
 	ivec2	mouse_inventory_slot;
 
 	int	ground_items_updated;
+
+	// Close window
+
+	if (platform_key_down(GLFW_KEY_ESCAPE))
+	{
+		platform_window_close();
+		return;
+	}
 
 	// Get mouse position in world and UI
 
@@ -132,14 +143,6 @@ void game_update()
 		game.mouse_inventory_index = mouse_inventory_slot.y * 9 + mouse_inventory_slot.x;		
 	else
 		game.mouse_inventory_index = -1;
-
-	// Close window
-
-	if (platform_key_down(GLFW_KEY_ESCAPE))
-	{
-		platform_window_close();
-		return;
-	}
 
 	// UI
 
@@ -183,7 +186,6 @@ void game_update()
 			game.current_hotbar_slot = i - 1;
 		}
 	}
-
 
 	// Click
 
@@ -467,7 +469,7 @@ void game_ui_render_number(vec2 position, float number_size, int number)
 	}
 }
 
-Map_Tile* game_get_maptile(ivec2 index)
+Map_Tile *game_get_maptile(ivec2 index)
 {
 	if (index.x < 0 || index.x >= MAP_SIZE_X || index.y < 0 || index.y >= MAP_SIZE_X)
 	{

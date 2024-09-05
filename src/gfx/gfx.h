@@ -1,14 +1,14 @@
 #ifndef _GFX_H_
 #define _GFX_H_
 
-#include "maths.h"
+#include "core/maths.h"
 
-#define GFX_MAX_COLOUR_QUADS 1024
-#define GFX_MAX_SPRITE_QUADS 1024
+#define GFX_MAX_COLOUR_QUADS 10240
+#define GFX_MAX_SPRITE_QUADS 10240
 
 typedef struct
 {
-	int		max_texture_units;
+	int      max_texture_units;
 } Platform_Info;
 
 typedef enum
@@ -19,20 +19,20 @@ typedef enum
 
 typedef struct
 {
-	int		id;
-	int		width;
-	int		height;
-	int		channels;
+	int     id;
+	int     width;
+	int     height;
+	int     channels;
 } Texture;
 
 typedef struct
 {
-	Texture		texture;
-	ivec2		cell_size_pixels;
-	vec2		cell_size_tex;
+	Texture     texture;
+	ivec2       cell_size_pixels;
+	vec2        cell_size_tex;
 
-	float		delta;
-	float		two_delta;
+	float       delta;
+	float       two_delta;
 } TextureAtlas;
 
 typedef struct
@@ -44,21 +44,21 @@ typedef struct
 
 typedef struct
 {
-	Quad 		quad;
-	Gfx_Quad_Type 	type;
+	Quad            quad;
+	Gfx_Quad_Type   type;
 	union
 	{
-		vec4	colour;
-		Sprite	sprite;
+		vec4        colour;
+		Sprite      sprite;
 	};
 	
 } Gfx_Quad;
 
 typedef struct
 {
-	unsigned int	vao;
-	unsigned int	vbo;
-	unsigned int	ibo;
+	unsigned int    vao;
+	unsigned int    vbo;
+	unsigned int    ibo;
 } Mesh;
 
 typedef enum
